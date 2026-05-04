@@ -1,0 +1,72 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+}
+
+:root {
+  --background: #04020b;
+  --foreground: #ffffff;
+  --card: #110d21;
+  --card-foreground: #ffffff;
+  --popover: #110d21;
+  --popover-foreground: #ffffff;
+  --primary: #a855f7;
+  --primary-foreground: #ffffff;
+  --secondary: #221b3d;
+  --secondary-foreground: #ffffff;
+  --muted: #221b3d;
+  --muted-foreground: #8e9299;
+  --accent: #a855f7;
+  --accent-foreground: #ffffff;
+  --destructive: #ef4444;
+  --destructive-foreground: #ffffff;
+  --border: #221b3d;
+  --input: #221b3d;
+  --ring: #a855f7;
+  --radius: 1rem;
+}
+
+@layer base {
+  * {
+    border-color: var(--border);
+  }
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans);
+  }
+}
+
+.glass-card {
+  background: rgba(17, 13, 33, 0.7);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(168, 85, 247, 0.1);
+}
+
+.purple-glow {
+  box-shadow: 0 0 40px -10px rgba(168, 85, 247, 0.3);
+}
+
+.purple-gradient-text {
+  background: linear-gradient(to right, #ffffff, #a855f7);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--background);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--secondary);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--primary);
+}
