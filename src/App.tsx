@@ -7,12 +7,25 @@ export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState<{ username: string; avatarUrl: string } | null>(null);
 
-  // Check for saved user on mount
+  // Check for saved user on mount and handle referral tracking
   useEffect(() => {
     const savedUser = localStorage.getItem('valtrix_user');
     if (savedUser) {
       setUser(JSON.parse(savedUser));
       setIsAuthenticated(true);
+    }
+
+    // Referral tracking
+    const urlParams = new URLSearchParams(window.location.search);
+    const ref = urlParams.get('ref');
+    if (ref) {
+      localStorage.setItem('valtrix_ref', ref);
+      // Register click in backend
+      fetch('/api/click', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: ref })
+      }).catch(err => console.error('Error tracking click:', err));
     }
   }, []);
 

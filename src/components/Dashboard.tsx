@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'motion/react';
-import { 
-  Users, MousePointer2, TrendingUp, Trophy, Copy, ExternalLink, 
+import {
+  Users, MousePointer2, TrendingUp, Trophy, Copy, ExternalLink,
   ChevronDown, Bell, LogOut, Wallet, MoreVertical, Star,
   HandCoins, Zap, ShieldCheck, ShoppingBag, CheckCircle2
 } from 'lucide-react';
@@ -52,14 +52,14 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
   const [isWithdrawalModalOpen, setIsWithdrawalModalOpen] = useState(false);
   const affiliateLink = `valtrix-three.vercel.app/?ref=${user.username}`;
   const [isCopied, setIsCopied] = useState(false);
-  
+
   const [stats, setStats] = useState({ clicks: 0, sales: 0, earnings: 'R$ 0,00', available: 'R$ 0,00' });
   const [ranking, setRanking] = useState(TOP_AFFILIATES);
   const [withdrawals, setWithdrawals] = useState(RECENT_WITHDRAWALS);
   const [chartFilter, setChartFilter] = useState('7 dias');
   const [showAllItems, setShowAllItems] = useState(false);
 
-  React.useEffect(() => {
+  const refreshData = () => {
     fetch(`/api/affiliate/${user.username}`)
       .then(r => r.json())
       .then(data => {
@@ -68,6 +68,10 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
         if (data.withdrawals) setWithdrawals(data.withdrawals);
       })
       .catch(err => console.error(err));
+  };
+
+  React.useEffect(() => {
+    refreshData();
   }, [user.username]);
 
   const copyLink = () => {
@@ -86,9 +90,9 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
         <div className="flex items-center gap-6">
           <div className="relative group">
             <div className="absolute inset-0 bg-purple-500 rounded-[2.5rem] blur-xl opacity-20 group-hover:opacity-40 transition-opacity" />
-            <img 
-              src={user.avatarUrl || "https://api.dicebear.com/7.x/avataaars/svg?seed=neguin"} 
-              alt="Avatar" 
+            <img
+              src={user.avatarUrl || "https://api.dicebear.com/7.x/avataaars/svg?seed=neguin"}
+              alt="Avatar"
               className="w-20 h-20 rounded-[2.5rem] relative z-10 border-2 border-purple-500/20"
             />
           </div>
@@ -102,7 +106,7 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
           <button className="h-12 w-12 flex items-center justify-center glass-card rounded-2xl hover:bg-white/10 transition-colors">
             <Bell size={20} />
           </button>
-          <button 
+          <button
             onClick={onLogout}
             className="h-12 px-6 flex items-center justify-center gap-2 glass-card rounded-2xl border-red-500/10 hover:bg-red-500/10 text-red-400 font-bold transition-all active:scale-95"
           >
@@ -115,7 +119,7 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         {/* Left Column: Main Data */}
         <div className="lg:col-span-8 space-y-8">
-          
+
           {/* Top Bar: Link & Period */}
           <div className="flex flex-col md:flex-row gap-4 items-stretch">
             <div className="flex-1 glass-card p-4 rounded-2.5xl flex items-center justify-between group">
@@ -127,7 +131,7 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
                   {affiliateLink}
                 </span>
               </div>
-              <button 
+              <button
                 onClick={copyLink}
                 className="h-10 px-4 bg-purple-500/10 hover:bg-purple-500/20 text-purple-400 rounded-xl flex items-center gap-2 font-bold text-xs transition-colors"
               >
@@ -135,7 +139,7 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
                 <span className="hidden sm:inline">{isCopied ? "Copiado!" : "Copiar Link"}</span>
               </button>
             </div>
-            
+
             <button className="px-6 glass-card rounded-2.5xl flex items-center justify-between gap-4 font-bold text-sm hover:bg-white/5 transition-colors">
               <span className="flex items-center gap-2">
                 <Users size={16} className="text-purple-400" />
@@ -148,26 +152,26 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
 
           {/* Stats Grid */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <StatsCard 
-              label="Cliques no Link" 
-              value={stats.clicks.toString()} 
-              icon={MousePointer2} 
+            <StatsCard
+              label="Cliques no Link"
+              value={stats.clicks.toString()}
+              icon={MousePointer2}
               variant="purple"
               delay={0.1}
             />
-            <StatsCard 
-              label="Vendas Atribuídas" 
-              value={stats.sales.toString()} 
+            <StatsCard
+              label="Vendas Atribuídas"
+              value={stats.sales.toString()}
               subValue="+0 novas"
-              icon={ShoppingBag} 
+              icon={ShoppingBag}
               variant="cyan"
               delay={0.2}
             />
-            <StatsCard 
-              label="Saldo Gerado" 
-              value={stats.earnings} 
+            <StatsCard
+              label="Saldo Gerado"
+              value={stats.earnings}
               subValue={`${stats.available} disponíveis`}
-              icon={TrendingUp} 
+              icon={TrendingUp}
               variant="gold"
               delay={0.3}
             />
@@ -192,7 +196,7 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
                 <p className="text-sm font-bold">93,75%</p>
               </div>
               <div className="flex gap-0.5">
-                {[1,2,3].map(i => <div key={i} className="w-1 h-3 rounded-full bg-green-500/40" />)}
+                {[1, 2, 3].map(i => <div key={i} className="w-1 h-3 rounded-full bg-green-500/40" />)}
                 <div className="w-1 h-3 rounded-full bg-green-500" />
               </div>
             </div>
@@ -211,8 +215,8 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
               </div>
               <div className="flex items-center bg-black/40 p-1 rounded-xl">
                 {['Hoje', '7 dias', '30 dias', 'Este Mês', 'Total'].map((tab) => (
-                  <button 
-                    key={tab} 
+                  <button
+                    key={tab}
                     onClick={() => setChartFilter(tab)}
                     className={cn(
                       "px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase transition-all",
@@ -224,11 +228,11 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
                 ))}
               </div>
             </div>
-            
+
             <PerformanceChart data={PERFORMANCE_DATA.slice(
-              chartFilter === 'Hoje' ? -1 : 
-              chartFilter === '7 dias' ? -7 : 
-              chartFilter === '30 dias' ? -30 : 0
+              chartFilter === 'Hoje' ? -1 :
+                chartFilter === '7 dias' ? -7 :
+                  chartFilter === '30 dias' ? -30 : 0
             )} />
 
             <div className="mt-8 flex items-center justify-center">
@@ -273,7 +277,7 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
                   </div>
                 ))}
               </div>
-              <button 
+              <button
                 onClick={() => setShowAllItems(!showAllItems)}
                 className="w-full mt-6 py-4 rounded-2xl border border-white/5 text-[10px] font-bold uppercase tracking-widest text-muted-foreground hover:bg-white/5 transition-colors">
                 {showAllItems ? 'Ocultar itens' : 'Ver todos os itens'}
@@ -282,7 +286,7 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
 
             {/* Sold Items Detail */}
             <div className="glass-card p-8 rounded-[2.5rem]">
-               <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center justify-between mb-6">
                 <h3 className="text-xl font-extrabold tracking-tight uppercase italic">Seus <span className="text-purple-500">Itens Vendidos</span></h3>
                 <button className="p-2 glass-card rounded-lg">
                   <ChevronDown size={14} />
@@ -314,7 +318,7 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
 
         {/* Right Column: Widgets */}
         <aside className="lg:col-span-4 space-y-8">
-          
+
           {/* Own Position */}
           <div className="glass-card p-8 rounded-[2.5rem] border-purple-500/20 bg-gradient-to-br from-purple-500/5 to-transparent">
             <div className="flex items-center gap-3 mb-4">
@@ -373,7 +377,7 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
               </div>
               <h3 className="text-xl font-extrabold tracking-tight uppercase italic">Histórico de <span className="text-purple-500">saques</span></h3>
             </div>
-            
+
             <div className="space-y-4">
               {withdrawals.map((w) => (
                 <div key={w.id} className="flex items-center justify-between p-4 bg-white/5 rounded-2xl">
@@ -381,8 +385,8 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
                     <div className={cn(
                       "w-10 h-10 rounded-xl flex items-center justify-center",
                       w.status === 'approved' ? "bg-green-500/10 text-green-400" :
-                      w.status === 'pending' ? "bg-amber-500/10 text-amber-400" :
-                      "bg-red-500/10 text-red-400"
+                        w.status === 'pending' ? "bg-amber-500/10 text-amber-400" :
+                          "bg-red-500/10 text-red-400"
                     )}>
                       <CheckCircle2 size={18} />
                     </div>
@@ -394,14 +398,14 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
                   <span className={cn(
                     "text-xs font-bold",
                     w.status === 'approved' ? "text-green-400" :
-                    w.status === 'pending' ? "text-amber-400" :
-                    "text-red-400"
+                      w.status === 'pending' ? "text-amber-400" :
+                        "text-red-400"
                   )}>{w.amount}</span>
                 </div>
               ))}
             </div>
 
-            <button 
+            <button
               onClick={() => setIsWithdrawalModalOpen(true)}
               className="w-full h-16 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-extrabold rounded-2xl shadow-lg shadow-purple-500/20 flex items-center justify-center gap-3 active:scale-95 transition-all"
             >
@@ -418,11 +422,11 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
             </div>
             <ul className="space-y-4">
               {[
-                'Copie seu link', 
-                'Compartilhe seu link', 
-                'Acompanhe cliques e vendas', 
-                'Ganhos entram como pendentes', 
-                'Após 7 dias, ficam disponíveis', 
+                'Copie seu link',
+                'Compartilhe seu link',
+                'Acompanhe cliques e vendas',
+                'Ganhos entram como pendentes',
+                'Após 7 dias, ficam disponíveis',
                 'Solicite seu saque via Pix',
                 'Receba na sua conta!'
               ].map((step, idx) => (
@@ -444,11 +448,11 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
             </div>
             <div className="space-y-4">
               {[
-                 { label: 'Aceito: Catálogo de Itens Atuais', color: 'text-purple-400' },
-                 { label: 'Prazos: Ganhos em 7-14 dias', color: 'text-amber-400' },
-                 { label: 'Mínimo: Saque a partir de R$ 10', color: 'text-purple-400' },
-                 { label: 'Segurança: Bloqueamos compras frias', color: 'text-red-400' },
-                 { label: 'Suporte: Respondemos em até 24h', color: 'text-purple-400' },
+                { label: 'Aceito: Catálogo de Itens Atuais', color: 'text-purple-400' },
+                { label: 'Prazos: Ganhos em 7-14 dias', color: 'text-amber-400' },
+                { label: 'Mínimo: Saque a partir de R$ 10', color: 'text-purple-400' },
+                { label: 'Segurança: Bloqueamos compras frias', color: 'text-red-400' },
+                { label: 'Suporte: Respondemos em até 24h', color: 'text-purple-400' },
               ].map((rule, idx) => (
                 <div key={idx} className="flex items-center gap-3">
                   <div className="w-4 h-px bg-white/10" />
@@ -468,11 +472,13 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
       </footer>
 
       {/* Withdrawal Modal */}
-      <WithdrawalModal 
-        isOpen={isWithdrawalModalOpen} 
+      <WithdrawalModal
+        isOpen={isWithdrawalModalOpen}
         onClose={() => setIsWithdrawalModalOpen(false)}
-        availableBalance={5.41}
-        withdrawals={RECENT_WITHDRAWALS}
+        availableBalance={parseFloat(stats.available.replace('R$ ', '').replace('.', '').replace(',', '.'))}
+        withdrawals={withdrawals}
+        username={user.username}
+        onSuccess={refreshData}
       />
     </div>
   );

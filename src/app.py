@@ -78,10 +78,34 @@ def login():
 def get_affiliate(username):
     try:
         db = read_db()
+        now = datetime.datetime.now()
+        seven_days_ago = now - datetime.timedelta(days=7)
         
         user_sales = [s for s in db['sales'] if s.get('code') == username and s.get('status') == 'confirmed']
         sales_count = len(user_sales)
-        total_earnings = sum(float(s.get('item_price', 0)) * 0.1 for s in user_sales)
+        
+        total_earnings = 0
+        available_balance = 0
+        
+        for s in user_sales:
+            price = float(s.get('item_price', 0))
+            commission = price * 0.1
+            total_earnings += commission
+            
+            confirmed_at_str = s.get('confirmedAt')
+            if confirmed_at_str:
+                confirmed_at = datetime.datetime.fromisoformat(confirmed_at_str)
+                if confirmed_at <= seven_days_ago:
+                    available_balance += commission
+        
+        # Calculate withdrawals already made
+        user_withdrawals = [w for w in db.get('withdrawals', []) if w.get('username') == username and w.get('status') != 'rejected']
+        withdrawn_amount = sum(float(w.get('amount', 'R$ 0').replace('R$ ', '').replace(',', '.')) for w in user_withdrawals)
+        
+        available_balance = max(0, available_balance - withdrawn_amount)
+
+        # Real clicks tracking
+        clicks_count = len([c for c in db.get('clicks', []) if c.get('code') == username])
         
         affiliates_map = {}
         for s in db['sales']:
@@ -106,31 +130,83 @@ def get_affiliate(username):
         
         top_affiliates = top_affiliates[:5]
         
-        withdrawals = [w for w in db.get('withdrawals', []) if w.get('username') == username]
+        withdrawals_history = [w for w in db.get('withdrawals', []) if w.get('username') == username]
         
         if not top_affiliates:
             top_affiliates = [
                 { 'rank': 1, 'username': 'metildes_xpt', 'avatarUrl': 'https://api.dicebear.com/7.x/avataaars/svg?seed=metildes', 'commission': 'R$ 55,74' },
                 { 'rank': 2, 'username': 'i0v3r', 'avatarUrl': 'https://api.dicebear.com/7.x/avataaars/svg?seed=i0v3r', 'commission': 'R$ 38,20' }
             ]
-            
-        if not withdrawals:
-             withdrawals = [
-                { 'id': '1', 'date': '30 de mar', 'amount': 'R$ 25,80', 'status': 'approved', 'pixKey': '***.456.***-89', 'recipient': username }
-            ]
 
         return jsonify({
             'stats': {
-                'clicks': sales_count * 3 + 12,
+                'clicks': clicks_count if clicks_count > 0 else sales_count * 3 + 12,
                 'sales': sales_count,
                 'earnings': f'R$ {total_earnings:,.2f}'.replace('.', 'v').replace(',', '.').replace('v', ','),
-                'available': f'R$ {total_earnings:,.2f}'.replace('.', 'v').replace(',', '.').replace('v', ',')
+                'available': f'R$ {available_balance:,.2f}'.replace('.', 'v').replace(',', '.').replace('v', ',')
             },
             'ranking': top_affiliates,
-            'withdrawals': withdrawals
+            'withdrawals': withdrawals_history
         })
     except Exception as e:
         print(f"Affiliate error: {e}")
+        return jsonify({'error': 'Internal server error'}), 500
+
+@app.route('/api/withdrawal', methods=['POST'])
+def request_withdrawal():
+    try:
+        data = request.json
+        username = data.get('username')
+        amount_str = data.get('amount')
+        pix_key = data.get('pixKey')
+        recipient = data.get('recipient')
+        
+        if not username or not amount_str or not pix_key:
+            return jsonify({'error': 'Missing data'}), 400
+            
+        db = read_db()
+        if 'withdrawals' not in db:
+            db['withdrawals'] = []
+            
+        new_withdrawal = {
+            'id': str(uuid.uuid4()),
+            'username': username,
+            'amount': f"R$ {float(amount_str):.2f}".replace('.', ','),
+            'pixKey': pix_key,
+            'recipient': recipient,
+            'status': 'pending',
+            'date': datetime.datetime.now().strftime('%d de %b').lower(),
+            'createdAt': datetime.datetime.now().isoformat()
+        }
+        
+        db['withdrawals'].insert(0, new_withdrawal)
+        write_db(db)
+        
+        return jsonify({'success': True, 'withdrawal': new_withdrawal})
+    except Exception as e:
+        print(f"Withdrawal error: {e}")
+        return jsonify({'error': 'Internal server error'}), 500
+
+@app.route('/api/click', methods=['POST'])
+def register_click():
+    try:
+        data = request.json
+        code = data.get('code')
+        if not code:
+            return jsonify({'error': 'Missing code'}), 400
+            
+        db = read_db()
+        if 'clicks' not in db:
+            db['clicks'] = []
+            
+        db['clicks'].append({
+            'code': code,
+            'ip': request.remote_addr,
+            'timestamp': datetime.datetime.now().isoformat()
+        })
+        write_db(db)
+        return jsonify({'success': True})
+    except Exception as e:
         return jsonify({'error': 'Internal server error'}), 500
 
 @app.route('/api/db', methods=['GET'])

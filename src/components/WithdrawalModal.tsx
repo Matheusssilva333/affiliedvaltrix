@@ -9,15 +9,68 @@ interface WithdrawalModalProps {
   onClose: () => void;
   availableBalance: number;
   withdrawals: Withdrawal[];
+  username: string;
+  onSuccess: () => void;
 }
 
-export default function WithdrawalModal({ isOpen, onClose, availableBalance, withdrawals }: WithdrawalModalProps) {
+export default function WithdrawalModal({ isOpen, onClose, availableBalance, withdrawals, username, onSuccess }: WithdrawalModalProps) {
   const [amount, setAmount] = useState('');
   const [pixKey, setPixKey] = useState('');
   const [recipient, setRecipient] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
   
   const pendingBalance = 0.00; // Mocked
-  const totalWithdrawn = 105.92; // Mocked
+  const totalWithdrawn = withdrawals.filter(w => w.status === 'approved').reduce((acc, w) => acc + parseFloat(w.amount.replace('R$ ', '').replace(',', '.')), 0);
+
+  const handleSubmit = async () => {
+    if (!amount || !pixKey || !recipient) {
+      setError('Preencha todos os campos');
+      return;
+    }
+    
+    const val = parseFloat(amount);
+    if (isNaN(val) || val < 10) {
+      setError('Saque mínimo de R$ 10,00');
+      return;
+    }
+    
+    if (val > availableBalance) {
+      setError('Saldo insuficiente');
+      return;
+    }
+
+    setIsLoading(true);
+    setError('');
+    
+    try {
+      const res = await fetch('/api/withdrawal', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          username,
+          amount: val,
+          pixKey,
+          recipient
+        })
+      });
+      
+      if (res.ok) {
+        onSuccess();
+        onClose();
+        setAmount('');
+        setPixKey('');
+        setRecipient('');
+      } else {
+        const data = await res.json();
+        setError(data.error || 'Erro ao processar saque');
+      }
+    } catch (err) {
+      setError('Erro de conexão');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   if (!isOpen) return null;
 
@@ -148,10 +201,22 @@ export default function WithdrawalModal({ isOpen, onClose, availableBalance, wit
               </ul>
             </div>
 
+            {error && (
+              <div className="bg-red-500/10 border border-red-500/50 text-red-500 text-xs p-3 rounded-xl text-center font-bold">
+                {error}
+              </div>
+            )}
+
             <button
-               className="w-full h-16 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-extrabold rounded-2xl shadow-lg shadow-purple-500/20 active:scale-[0.98] transition-all"
+              onClick={handleSubmit}
+              disabled={isLoading}
+               className="w-full h-16 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-extrabold rounded-2xl shadow-lg shadow-purple-500/20 active:scale-[0.98] transition-all disabled:opacity-50"
             >
-              Confirmar Saque via Pix de R$ {parseFloat(amount || '0').toFixed(2)}
+              {isLoading ? (
+                <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin mx-auto" />
+              ) : (
+                `Confirmar Saque via Pix de R$ ${parseFloat(amount || '0').toFixed(2)}`
+              )}
             </button>
             <p className="text-[10px] text-center text-muted-foreground italic">
               Ao confirmar, o valor será reservado e enviado para análise.
