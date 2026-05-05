@@ -1,12 +1,12 @@
 services:
   - type: web
     name: valtrix-clientes
-    env: node
+    env: python
     plan: free
-    buildCommand: "npm install && npm run build"
-    startCommand: "npm start"
+    buildCommand: "npm install && npm run build && pip install -r requirements.txt"
+    startCommand: "gunicorn src.app:app"
     envVars:
-      - key: NODE_ENV
-        value: production
       - key: PORT
         value: 10000
+      - key: API_SECRET
+        sync: false
