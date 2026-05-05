@@ -10,7 +10,9 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-app = Flask(__name__, static_folder='../dist')
+# Configure static folder with absolute path
+STATIC_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../dist')
+app = Flask(__name__, static_folder=STATIC_FOLDER)
 CORS(app)
 
 # Mercado Pago Configuration
@@ -408,10 +410,16 @@ def proxy():
 @app.route('/', defaults={'path': ''})
 @app.route('/<path:path>')
 def serve(path):
+    # Try to serve requested static file
     if path != "" and os.path.exists(os.path.join(app.static_folder, path)):
         return send_from_directory(app.static_folder, path)
-    else:
+    
+    # Fallback to index.html for SPA routing
+    index_path = os.path.join(app.static_folder, 'index.html')
+    if os.path.exists(index_path):
         return send_from_directory(app.static_folder, 'index.html')
+    else:
+        return f"Static files not found at {app.static_folder}. Please ensure the build is complete.", 404
 
 if __name__ == '__main__':
     init_db()
