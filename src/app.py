@@ -56,7 +56,6 @@ def login():
     try:
         data = request.json
         username = data.get('username')
-        invite_code = data.get('invite_code')
 
         if not username:
             return jsonify({'error': 'Missing username'}), 400
@@ -426,6 +425,7 @@ def serve(path):
         parent_contents = os.listdir(parent_dir) if os.path.exists(parent_dir) else "N/A"
         return f"Static files not found at {app.static_folder}. Index exists: {os.path.exists(index_path)}. Root contents: {parent_contents}", 404
 
+init_db()
+
 if __name__ == '__main__':
-    init_db()
     app.run(host='0.0.0.0', port=PORT)
