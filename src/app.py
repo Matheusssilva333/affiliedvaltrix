@@ -11,9 +11,22 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Configure static folder with absolute path
-STATIC_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../dist')
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+# Try root/dist (if app.py is in root/src) or root/dist (if app.py is in root)
+STATIC_FOLDER = os.path.abspath(os.path.join(BASE_DIR, '../dist'))
+if not os.path.exists(STATIC_FOLDER):
+    STATIC_FOLDER = os.path.abspath(os.path.join(BASE_DIR, 'dist'))
+
 app = Flask(__name__, static_folder=STATIC_FOLDER)
 CORS(app)
+
+# Debug: Print directory structure to Render logs
+print(f"Current File: {__file__}")
+print(f"Base Dir: {BASE_DIR}")
+print(f"Static Folder: {STATIC_FOLDER}")
+print(f"Static Folder Exists: {os.path.exists(STATIC_FOLDER)}")
+if os.path.exists(os.path.dirname(BASE_DIR)):
+    print(f"Parent Dir Contents: {os.listdir(os.path.dirname(BASE_DIR))}")
 
 # Mercado Pago Configuration
 MP_ACCESS_TOKEN = os.environ.get('MERCADOPAGO_ACCESS_TOKEN')
@@ -419,7 +432,10 @@ def serve(path):
     if os.path.exists(index_path):
         return send_from_directory(app.static_folder, 'index.html')
     else:
-        return f"Static files not found at {app.static_folder}. Please ensure the build is complete.", 404
+        # Debug info for Render
+        parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        parent_contents = os.listdir(parent_dir) if os.path.exists(parent_dir) else "N/A"
+        return f"Static files not found at {app.static_folder}. Index exists: {os.path.exists(index_path)}. Root contents: {parent_contents}", 404
 
 if __name__ == '__main__':
     init_db()
