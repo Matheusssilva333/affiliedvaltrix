@@ -5,18 +5,17 @@ import { cn } from '@/src/lib/utils';
 import ParticleBackground from './ParticleBackground';
 
 interface LoginProps {
-  onLogin: (username: string, invite_code: string) => void;
+  onLogin: (username: string) => void;
 }
 
 export default function Login({ onLogin }: LoginProps) {
   const [username, setUsername] = useState('');
-  const [inviteCode, setInviteCode] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!username.trim() || !inviteCode.trim()) return;
+    if (!username.trim()) return;
     
     setIsLoading(true);
     setError('');
@@ -25,12 +24,12 @@ export default function Login({ onLogin }: LoginProps) {
       const response = await fetch('/api/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, invite_code: inviteCode })
+        body: JSON.stringify({ username })
       });
       const data = await response.json();
       
       if (response.ok && data.success) {
-        onLogin(username, inviteCode);
+        onLogin(username);
       } else {
         setError(data.error || 'Erro ao fazer login');
       }
@@ -105,25 +104,6 @@ export default function Login({ onLogin }: LoginProps) {
               </div>
             </div>
 
-            <div className="space-y-2">
-              <label htmlFor="inviteCode" className="text-xs font-bold uppercase tracking-wider text-purple-400 ml-1">
-                Código de Convite
-              </label>
-              <div className="relative group">
-                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors group-focus-within:text-purple-400">
-                  <ShieldCheck size={18} />
-                </div>
-                <input
-                  id="inviteCode"
-                  type="password"
-                  placeholder="Seu código secreto"
-                  value={inviteCode}
-                  onChange={(e) => setInviteCode(e.target.value)}
-                  className="w-full h-14 bg-black/40 border border-purple-500/20 rounded-2xl pl-12 pr-4 text-white placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 transition-all font-medium"
-                  required
-                />
-              </div>
-            </div>
 
             <button
               disabled={isLoading}
@@ -143,7 +123,7 @@ export default function Login({ onLogin }: LoginProps) {
 
           <p className="text-center text-xs text-muted-foreground flex items-center justify-center gap-2">
             <ShieldCheck size={14} className="text-purple-500/50" />
-            Acesso restrito a afiliados com código válido
+            Insira seu usuário do Roblox para entrar
           </p>
         </div>
 

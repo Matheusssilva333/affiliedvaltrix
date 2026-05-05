@@ -58,8 +58,8 @@ def login():
         username = data.get('username')
         invite_code = data.get('invite_code')
 
-        if not username or not invite_code:
-            return jsonify({'error': 'Missing credentials'}), 400
+        if not username:
+            return jsonify({'error': 'Missing username'}), 400
 
         db = read_db()
         affiliate = next((a for a in db['affiliates'] if a['username'] == username), None)
@@ -67,13 +67,10 @@ def login():
         if not affiliate:
             affiliate = {
                 'username': username,
-                'invite_code': invite_code,
                 'createdAt': datetime.datetime.now().isoformat()
             }
             db['affiliates'].append(affiliate)
             write_db(db)
-        elif affiliate['invite_code'] != invite_code:
-            return jsonify({'error': 'Invalid invite code'}), 401
 
         return jsonify({
             'success': True,

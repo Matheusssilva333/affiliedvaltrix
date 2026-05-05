@@ -29,10 +29,9 @@ export default function App() {
     }
   }, []);
 
-  const handleLogin = (username: string, invite_code: string) => {
+  const handleLogin = (username: string) => {
     const userData = {
       username,
-      invite_code,
       avatarUrl: `https://api.dicebear.com/7.x/avataaars/svg?seed=${username}`,
     };
     setUser(userData);
