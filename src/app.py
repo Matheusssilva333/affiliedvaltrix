@@ -20,14 +20,6 @@ if not os.path.exists(STATIC_FOLDER):
 app = Flask(__name__, static_folder=STATIC_FOLDER)
 CORS(app)
 
-# Debug: Print directory structure to Render logs
-print(f"Current File: {__file__}")
-print(f"Base Dir: {BASE_DIR}")
-print(f"Static Folder: {STATIC_FOLDER}")
-print(f"Static Folder Exists: {os.path.exists(STATIC_FOLDER)}")
-if os.path.exists(os.path.dirname(BASE_DIR)):
-    print(f"Parent Dir Contents: {os.listdir(os.path.dirname(BASE_DIR))}")
-
 # Mercado Pago Configuration
 MP_ACCESS_TOKEN = os.environ.get('MERCADOPAGO_ACCESS_TOKEN')
 sdk = mercadopago.SDK(MP_ACCESS_TOKEN) if MP_ACCESS_TOKEN else None
