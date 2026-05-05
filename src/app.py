@@ -5,12 +5,17 @@ import datetime
 from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 import requests
+import mercadopago
 from dotenv import load_dotenv
 
 load_dotenv()
 
 app = Flask(__name__, static_folder='../dist')
 CORS(app)
+
+# Mercado Pago Configuration
+MP_ACCESS_TOKEN = os.environ.get('MERCADOPAGO_ACCESS_TOKEN')
+sdk = mercadopago.SDK(MP_ACCESS_TOKEN) if MP_ACCESS_TOKEN else None
 
 PORT = int(os.environ.get('PORT', 10000))
 DB_FILE = os.path.join(os.path.dirname(__file__), 'db.json')
@@ -287,6 +292,106 @@ def affiliate_action():
         return jsonify({'error': 'Invalid action'}), 400
     except Exception as e:
         return jsonify({'error': 'Internal server error'}), 500
+
+@app.route('/api/checkout', methods=['POST'])
+def create_checkout():
+    if not sdk:
+        return jsonify({'error': 'Mercado Pago SDK not configured'}), 500
+    try:
+        data = request.json
+        item_id = data.get('item_id')
+        item_name = data.get('item_name')
+        item_price = float(data.get('item_price'))
+        affiliate_code = data.get('affiliate_code')
+
+        if not item_id or not item_price:
+            return jsonify({'error': 'Missing item data'}), 400
+
+        # Create Preference
+        preference_data = {
+            "items": [
+                {
+                    "id": item_id,
+                    "title": item_name,
+                    "quantity": 1,
+                    "unit_price": item_price,
+                    "currency_id": "BRL"
+                }
+            ],
+            "external_reference": json.dumps({
+                "affiliate_code": affiliate_code,
+                "item_id": item_id
+            }),
+            "notification_url": f"{request.host_url}api/webhook/mp",
+            "back_urls": {
+                "success": f"{request.host_url}success",
+                "failure": f"{request.host_url}failure",
+                "pending": f"{request.host_url}pending"
+            },
+            "auto_return": "approved"
+        }
+
+        preference_response = sdk.preference().create(preference_data)
+        preference = preference_response["response"]
+
+        # Save pending sale
+        db = read_db()
+        db['sales'].append({
+            'id': preference['id'],
+            'token': f"mp_{preference['id']}",
+            'code': affiliate_code,
+            'item_id': item_id,
+            'item_name': item_name,
+            'item_price': item_price,
+            'status': 'pending',
+            'createdAt': datetime.datetime.now().isoformat()
+        })
+        write_db(db)
+
+        return jsonify({
+            'id': preference['id'],
+            'init_point': preference['init_point'] # Link para pagamento
+        })
+    except Exception as e:
+        print(f"Checkout error: {e}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/webhook/mp', methods=['POST'])
+def mercadopago_webhook():
+    if not sdk:
+        return jsonify({'error': 'Not configured'}), 500
+    try:
+        # Get notification data
+        data = request.args
+        topic = data.get('topic') or request.json.get('type')
+        id = data.get('id') or request.json.get('data', {}).get('id')
+
+        if topic == 'payment':
+            payment_info_response = sdk.payment().get(id)
+            payment_info = payment_info_response["response"]
+            
+            status = payment_info.get('status')
+            external_reference = json.loads(payment_info.get('external_reference', '{}'))
+            
+            if status == 'approved':
+                db = read_db()
+                # Find pending sale
+                for sale in db['sales']:
+                    # Match by id or external reference
+                    if sale.get('item_id') == external_reference.get('item_id') and \
+                       sale.get('code') == external_reference.get('affiliate_code') and \
+                       sale.get('status') == 'pending':
+                        
+                        sale['status'] = 'confirmed'
+                        sale['payment_id'] = id
+                        sale['confirmedAt'] = datetime.datetime.now().isoformat()
+                        write_db(db)
+                        break
+        
+        return jsonify({'status': 'ok'}), 200
+    except Exception as e:
+        print(f"Webhook error: {e}")
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/api/proxy', methods=['GET'])
 def proxy():
