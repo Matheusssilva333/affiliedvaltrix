@@ -51,10 +51,29 @@ const RECENT_WITHDRAWALS: Withdrawal[] = [
 export default function Dashboard({ user, onLogout }: DashboardProps) {
   const [isWithdrawalModalOpen, setIsWithdrawalModalOpen] = useState(false);
   const affiliateLink = `valtrix-three.vercel.app/?ref=${user.username}`;
+  const [isCopied, setIsCopied] = useState(false);
+  
+  const [stats, setStats] = useState({ clicks: 0, sales: 0, earnings: 'R$ 0,00', available: 'R$ 0,00' });
+  const [ranking, setRanking] = useState(TOP_AFFILIATES);
+  const [withdrawals, setWithdrawals] = useState(RECENT_WITHDRAWALS);
+  const [chartFilter, setChartFilter] = useState('7 dias');
+  const [showAllItems, setShowAllItems] = useState(false);
+
+  React.useEffect(() => {
+    fetch(`/api/affiliate/${user.username}`)
+      .then(r => r.json())
+      .then(data => {
+        if (data.stats) setStats(data.stats);
+        if (data.ranking) setRanking(data.ranking);
+        if (data.withdrawals) setWithdrawals(data.withdrawals);
+      })
+      .catch(err => console.error(err));
+  }, [user.username]);
 
   const copyLink = () => {
     navigator.clipboard.writeText(affiliateLink);
-    // Could add a toast here
+    setIsCopied(true);
+    setTimeout(() => setIsCopied(false), 2000);
   };
 
   return (
@@ -113,7 +132,7 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
                 className="h-10 px-4 bg-purple-500/10 hover:bg-purple-500/20 text-purple-400 rounded-xl flex items-center gap-2 font-bold text-xs transition-colors"
               >
                 <Copy size={14} />
-                <span className="hidden sm:inline">Copiar Link</span>
+                <span className="hidden sm:inline">{isCopied ? "Copiado!" : "Copiar Link"}</span>
               </button>
             </div>
             
@@ -131,23 +150,23 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <StatsCard 
               label="Cliques no Link" 
-              value="16" 
+              value={stats.clicks.toString()} 
               icon={MousePointer2} 
               variant="purple"
               delay={0.1}
             />
             <StatsCard 
               label="Vendas Atribuídas" 
-              value="15" 
-              subValue="+4 novas"
+              value={stats.sales.toString()} 
+              subValue="+0 novas"
               icon={ShoppingBag} 
               variant="cyan"
               delay={0.2}
             />
             <StatsCard 
               label="Saldo Gerado" 
-              value="R$ 9,16" 
-              subValue="R$ 5,41 disponíveis"
+              value={stats.earnings} 
+              subValue={`${stats.available} disponíveis`}
               icon={TrendingUp} 
               variant="gold"
               delay={0.3}
@@ -191,12 +210,13 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
                 </div>
               </div>
               <div className="flex items-center bg-black/40 p-1 rounded-xl">
-                {['Hoje', '7 dias', '30 dias', 'Este Mês', 'Total'].map((tab, idx) => (
+                {['Hoje', '7 dias', '30 dias', 'Este Mês', 'Total'].map((tab) => (
                   <button 
                     key={tab} 
+                    onClick={() => setChartFilter(tab)}
                     className={cn(
                       "px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase transition-all",
-                      idx === 2 ? "bg-purple-500 text-white shadow-lg shadow-purple-500/20" : "text-muted-foreground hover:text-white"
+                      chartFilter === tab ? "bg-purple-500 text-white shadow-lg shadow-purple-500/20" : "text-muted-foreground hover:text-white"
                     )}
                   >
                     {tab}
@@ -205,7 +225,11 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
               </div>
             </div>
             
-            <PerformanceChart data={PERFORMANCE_DATA} />
+            <PerformanceChart data={PERFORMANCE_DATA.slice(
+              chartFilter === 'Hoje' ? -1 : 
+              chartFilter === '7 dias' ? -7 : 
+              chartFilter === '30 dias' ? -30 : 0
+            )} />
 
             <div className="mt-8 flex items-center justify-center">
               <div className="px-6 py-3 bg-white/5 rounded-2xl flex items-center gap-4">
@@ -231,7 +255,7 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
                 </div>
               </div>
               <div className="space-y-4">
-                {SOLD_ITEMS.map((item) => (
+                {SOLD_ITEMS.slice(0, showAllItems ? undefined : 2).map((item) => (
                   <div key={item.id} className="flex items-center justify-between p-4 bg-white/5 rounded-2xl hover:bg-white/10 transition-colors group">
                     <div className="flex items-center gap-4">
                       <div className="w-12 h-12 rounded-xl bg-purple-500/10 flex items-center justify-center overflow-hidden border border-white/5">
@@ -239,7 +263,7 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
                       </div>
                       <div className="space-y-0.5">
                         <p className="text-sm font-bold truncate max-w-[120px]">{item.name}</p>
-                        <p className="text-[10px] font-medium text-muted-foreground uppercase">{item.salesCount} vendas • <span className="text-purple-400">R$ {parseFloat(item.price.slice(3)) * 0.1} comissão</span></p>
+                        <p className="text-[10px] font-medium text-muted-foreground uppercase">{item.salesCount} vendas • <span className="text-purple-400">R$ {parseFloat(item.price.slice(3).replace(',', '.')) * 0.1} comissão</span></p>
                       </div>
                     </div>
                     <div className="text-right">
@@ -249,8 +273,10 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
                   </div>
                 ))}
               </div>
-              <button className="w-full mt-6 py-4 rounded-2xl border border-white/5 text-[10px] font-bold uppercase tracking-widest text-muted-foreground hover:bg-white/5 transition-colors">
-                Ver todos os itens
+              <button 
+                onClick={() => setShowAllItems(!showAllItems)}
+                className="w-full mt-6 py-4 rounded-2xl border border-white/5 text-[10px] font-bold uppercase tracking-widest text-muted-foreground hover:bg-white/5 transition-colors">
+                {showAllItems ? 'Ocultar itens' : 'Ver todos os itens'}
               </button>
             </div>
 
@@ -316,7 +342,7 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
               <span className="text-[10px] font-bold text-muted-foreground uppercase bg-white/5 px-2 py-1 rounded-lg">Mensal</span>
             </div>
             <div className="space-y-6">
-              {TOP_AFFILIATES.map((aff) => (
+              {ranking.map((aff) => (
                 <div key={aff.rank} className="flex items-center justify-between group">
                   <div className="flex items-center gap-4">
                     <div className="relative">
@@ -326,7 +352,7 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
                     <div>
                       <p className="text-sm font-bold group-hover:text-purple-400 transition-colors">{aff.username}</p>
                       <p className="text-[10px] text-muted-foreground font-medium flex items-center gap-1">
-                        <Users size={10} /> 140 vendas
+                        <Users size={10} /> vendas
                       </p>
                     </div>
                   </div>
@@ -349,7 +375,7 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
             </div>
             
             <div className="space-y-4">
-              {RECENT_WITHDRAWALS.map((w) => (
+              {withdrawals.map((w) => (
                 <div key={w.id} className="flex items-center justify-between p-4 bg-white/5 rounded-2xl">
                   <div className="flex items-center gap-4">
                     <div className={cn(

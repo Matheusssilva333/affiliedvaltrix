@@ -5,23 +5,40 @@ import { cn } from '@/src/lib/utils';
 import ParticleBackground from './ParticleBackground';
 
 interface LoginProps {
-  onLogin: (username: string) => void;
+  onLogin: (username: string, invite_code: string) => void;
 }
 
 export default function Login({ onLogin }: LoginProps) {
   const [username, setUsername] = useState('');
+  const [inviteCode, setInviteCode] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!username.trim()) return;
+    if (!username.trim() || !inviteCode.trim()) return;
     
     setIsLoading(true);
-    // Simulate API call
-    setTimeout(() => {
-      onLogin(username);
+    setError('');
+    
+    try {
+      const response = await fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, invite_code: inviteCode })
+      });
+      const data = await response.json();
+      
+      if (response.ok && data.success) {
+        onLogin(username, inviteCode);
+      } else {
+        setError(data.error || 'Erro ao fazer login');
+      }
+    } catch (err) {
+      setError('Erro de conexão');
+    } finally {
       setIsLoading(false);
-    }, 1500);
+    }
   };
 
   return (
@@ -63,6 +80,11 @@ export default function Login({ onLogin }: LoginProps) {
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
+            {error && (
+              <div className="bg-red-500/10 border border-red-500/50 text-red-500 text-sm p-3 rounded-xl text-center font-bold">
+                {error}
+              </div>
+            )}
             <div className="space-y-2">
               <label htmlFor="username" className="text-xs font-bold uppercase tracking-wider text-purple-400 ml-1">
                 Usuário do Roblox
@@ -77,6 +99,26 @@ export default function Login({ onLogin }: LoginProps) {
                   placeholder="Ex: PlayerName123"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
+                  className="w-full h-14 bg-black/40 border border-purple-500/20 rounded-2xl pl-12 pr-4 text-white placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 transition-all font-medium"
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <label htmlFor="inviteCode" className="text-xs font-bold uppercase tracking-wider text-purple-400 ml-1">
+                Código de Convite
+              </label>
+              <div className="relative group">
+                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors group-focus-within:text-purple-400">
+                  <ShieldCheck size={18} />
+                </div>
+                <input
+                  id="inviteCode"
+                  type="password"
+                  placeholder="Seu código secreto"
+                  value={inviteCode}
+                  onChange={(e) => setInviteCode(e.target.value)}
                   className="w-full h-14 bg-black/40 border border-purple-500/20 rounded-2xl pl-12 pr-4 text-white placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 transition-all font-medium"
                   required
                 />
@@ -101,7 +143,7 @@ export default function Login({ onLogin }: LoginProps) {
 
           <p className="text-center text-xs text-muted-foreground flex items-center justify-center gap-2">
             <ShieldCheck size={14} className="text-purple-500/50" />
-            Apenas seu nome de usuário é usado - sem senha
+            Acesso restrito a afiliados com código válido
           </p>
         </div>
 
