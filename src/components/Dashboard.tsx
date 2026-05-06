@@ -27,7 +27,7 @@ const RECENT_WITHDRAWALS: Withdrawal[] = [];
 
 export default function Dashboard({ user, onLogout }: DashboardProps) {
   const [isWithdrawalModalOpen, setIsWithdrawalModalOpen] = useState(false);
-  const affiliateLink = `valtrix-three.vercel.app/?ref=${user.username}`;
+  const affiliateLink = `https://valtrix-clientes.onrender.com/?ref=${user.username}`;
   const [isCopied, setIsCopied] = useState(false);
 
   const [stats, setStats] = useState({ clicks: 0, sales: 0, earnings: 'R$ 0,00', available: 'R$ 0,00' });
