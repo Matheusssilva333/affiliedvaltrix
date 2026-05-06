@@ -66,40 +66,38 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
       <div className="fixed inset-0 pointer-events-none opacity-40">
         <ParticleBackground />
       </div>
-      {/* Header */}
-      <header className="flex flex-col md:flex-row md:items-center justify-between gap-6 z-10 relative">
-        <div className="flex items-center gap-6">
-          <div className="hidden md:flex items-center gap-2 mr-8">
-            <div className="w-8 h-8 rounded-xl bg-purple-500/20 flex items-center justify-center">
-              <Zap className="text-purple-500 w-5 h-5" />
-            </div>
-            <span className="font-display font-extrabold text-xl tracking-tight">Valtrix Afiliados</span>
+      {/* Top Navbar */}
+      <nav className="flex items-center justify-between mb-8 z-10 relative bg-white/[0.02] p-4 rounded-3xl border border-white/5">
+        <div className="flex items-center gap-2">
+          <div className="w-1.5 h-4 bg-purple-500 rounded-full" />
+          <span className="font-display font-extrabold text-lg tracking-tight text-white">Valtrix Afiliados</span>
+        </div>
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 px-3 py-1.5 bg-black/40 rounded-full border border-white/5">
+            <img src={user.avatarUrl || "https://api.dicebear.com/7.x/avataaars/svg?seed=neguin"} alt="Avatar" className="w-6 h-6 rounded-full" />
+            <span className="text-xs font-bold text-white mr-2">{user.username}</span>
           </div>
-          <div className="relative group">
-            <div className="absolute inset-0 bg-purple-500 rounded-[2.5rem] blur-xl opacity-20 group-hover:opacity-40 transition-opacity" />
+          <button onClick={onLogout} className="px-4 py-2 bg-white/5 hover:bg-white/10 rounded-xl text-xs font-bold transition-colors">
+            Sair
+          </button>
+        </div>
+      </nav>
+
+      {/* Header Greeting */}
+      <header className="flex items-center gap-6 mb-12 z-10 relative">
+        <div className="relative group">
+          <div className="absolute inset-0 bg-yellow-500/20 rounded-[2rem] blur-xl opacity-40 transition-opacity" />
+          <div className="w-20 h-20 rounded-[2rem] relative z-10 border-2 border-yellow-500/40 bg-[#17112B] flex items-center justify-center overflow-hidden">
             <img
               src={user.avatarUrl || "https://api.dicebear.com/7.x/avataaars/svg?seed=neguin"}
               alt="Avatar"
-              className="w-20 h-20 rounded-[2.5rem] relative z-10 border-2 border-purple-500/20"
+              className="w-full h-full object-cover"
             />
           </div>
-          <div className="space-y-1">
-            <h1 className="text-3xl font-display font-extrabold tracking-tighter">Olá, <span className="text-purple-500">{user.username}</span>! 🚀</h1>
-            <p className="text-muted-foreground text-sm font-medium">Acompanhe seus cliques, vendas e ganhos em tempo real.</p>
-          </div>
         </div>
-
-        <div className="flex items-center gap-3">
-          <button className="h-12 w-12 flex items-center justify-center glass-card rounded-2xl hover:bg-white/10 transition-colors">
-            <Bell size={20} />
-          </button>
-          <button
-            onClick={onLogout}
-            className="h-12 px-6 flex items-center justify-center gap-2 glass-card rounded-2xl border-red-500/10 hover:bg-red-500/10 text-red-400 font-bold transition-all active:scale-95"
-          >
-            <LogOut size={18} />
-            <span>Sair</span>
-          </button>
+        <div className="space-y-1">
+          <h1 className="text-4xl font-display font-extrabold tracking-tight text-white">Olá, <span className="text-white">{user.username}</span>! 🚀</h1>
+          <p className="text-muted-foreground text-sm font-medium">Acompanhe seus cliques, vendas e ganhos em tempo real.</p>
         </div>
       </header>
 
@@ -108,59 +106,67 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
         <div className="lg:col-span-8 space-y-8">
 
           {/* Top Bar: Link & Period */}
-          <div className="flex flex-col md:flex-row gap-4 items-stretch">
-            <div className="flex-1 glass-card p-4 rounded-2.5xl flex items-center justify-between group">
-              <div className="flex items-center gap-4 flex-1">
-                <div className="p-2 bg-purple-500/10 rounded-xl">
-                  <ExternalLink size={16} className="text-purple-400" />
-                </div>
-                <span className="text-sm font-bold text-muted-foreground truncate max-w-[200px] md:max-w-none">
-                  {affiliateLink}
-                </span>
-              </div>
-              <button
-                onClick={copyLink}
-                className="h-10 px-4 bg-purple-500/10 hover:bg-purple-500/20 text-purple-400 rounded-xl flex items-center gap-2 font-bold text-xs transition-colors"
-              >
-                <Copy size={14} />
-                <span className="hidden sm:inline">{isCopied ? "Copiado!" : "Copiar Link"}</span>
-              </button>
+          <div className="flex items-center gap-2 mb-2">
+            <div className="p-1.5 bg-white/5 rounded-lg">
+              <div className="w-3 h-3 bg-yellow-500 rounded-[2px]" />
             </div>
+            <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Período</span>
+            <button className="flex items-center gap-2 px-3 py-1 bg-purple-500/10 text-purple-400 rounded-lg text-xs font-bold transition-colors hover:bg-purple-500/20">
+              Últimos 30 dias
+              <ChevronDown size={14} />
+            </button>
+          </div>
 
-            <button className="px-6 glass-card rounded-2.5xl flex items-center justify-between gap-4 font-bold text-sm hover:bg-white/5 transition-colors">
-              <span className="flex items-center gap-2">
-                <Users size={16} className="text-purple-400" />
-                No Período
+          <div className="glass-card p-4 rounded-2.5xl flex items-center justify-between group mb-8">
+            <div className="flex items-center gap-4">
+              <span className="text-sm font-bold text-white tracking-wide">
+                valtrix-8lren.vercel.app/?ref=9DC3A
               </span>
-              <span className="text-purple-400">Últimos 7 dias</span>
-              <ChevronDown size={16} className="text-muted-foreground" />
+            </div>
+            <button
+              onClick={copyLink}
+              className="flex items-center gap-2 px-4 py-2 bg-[#1B1231] hover:bg-purple-500/20 text-green-400 rounded-xl font-bold text-xs transition-colors border border-green-500/20"
+            >
+              <Copy size={14} />
+              <span>Copiar (em prod)</span>
             </button>
           </div>
 
           {/* Stats Grid */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <StatsCard
-              label="Cliques no Link"
-              value={stats.clicks.toString()}
+              label="Cliques no link"
+              value="16"
               icon={MousePointer2}
               variant="purple"
               delay={0.1}
             />
             <StatsCard
               label="Vendas Atribuídas"
-              value={stats.sales.toString()}
-              subValue="+0 novas"
+              value="15"
+              subValue="+ 0 novas"
               icon={ShoppingBag}
               variant="cyan"
               delay={0.2}
             />
             <StatsCard
-              label="Saldo Gerado"
-              value={stats.earnings}
-              subValue={`${stats.available} disponíveis`}
-              icon={TrendingUp}
+              label="Saldo gerado"
+              value="R$ 9,16"
+              subValue="Disponível agora"
+              icon={Trophy}
               variant="gold"
               delay={0.3}
+              extraContent={
+                <div className="mt-4 p-3 bg-[#17112B] rounded-xl flex items-center gap-3 border border-white/5">
+                  <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Recente" alt="avatar" className="w-8 h-8 rounded-lg bg-black/50" />
+                  <div>
+                    <p className="text-xs font-bold text-white flex items-center gap-2">
+                      <span className="text-green-400">+</span> Recente R$ 5,00
+                    </p>
+                    <p className="text-[10px] text-muted-foreground">Vendido há 4 minutos</p>
+                  </div>
+                </div>
+              }
             />
           </div>
 
@@ -168,23 +174,24 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div className="glass-card p-5 rounded-3xl flex items-center justify-between">
               <div className="space-y-1">
-                <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Última venda</p>
-                <p className="text-sm font-bold">Hoje às <span className="text-purple-400">20:52</span></p>
+                <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Última venda</p>
+                <p className="text-base font-bold text-white">Hoje às <span className="text-white">20:52</span></p>
               </div>
-              <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-            </div>
-            <div className="glass-card p-5 rounded-3xl space-y-1">
-              <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Saldo gerado</p>
-              <p className="text-sm font-bold text-white">R$ 0,61 <span className="text-xs text-muted-foreground font-medium ml-1">nesta sessão</span></p>
             </div>
             <div className="glass-card p-5 rounded-3xl flex items-center justify-between">
               <div className="space-y-1">
-                <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Taxa de conversão</p>
-                <p className="text-sm font-bold">93,75%</p>
+                <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Saldo gerado</p>
+                <p className="text-xl font-bold text-white">R$ 0,61</p>
               </div>
-              <div className="flex gap-0.5">
-                {[1, 2, 3].map(i => <div key={i} className="w-1 h-3 rounded-full bg-green-500/40" />)}
-                <div className="w-1 h-3 rounded-full bg-green-500" />
+            </div>
+            <div className="glass-card p-5 rounded-3xl flex items-center justify-between">
+              <div className="space-y-1">
+                <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Taxa de conversão</p>
+                <p className="text-xl font-bold text-green-400">93,75%</p>
+              </div>
+              <div className="flex gap-0.5 mt-auto">
+                <div className="w-1.5 h-4 rounded-full bg-green-500" />
+                <div className="w-1.5 h-6 rounded-full bg-green-500" />
               </div>
             </div>
           </div>
@@ -307,43 +314,43 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
         <aside className="lg:col-span-4 space-y-8">
 
           {/* Own Position */}
-          <div className="glass-card p-8 rounded-[2.5rem] border-purple-500/20 bg-gradient-to-br from-purple-500/5 to-transparent">
-            <div className="flex items-center gap-3 mb-4">
-              <Zap size={20} className="text-purple-500" />
-              <h3 className="text-sm font-display font-bold uppercase tracking-widest">Sua Posição <span className="text-purple-500">no Ranking</span></h3>
+          <div className="glass-card p-6 rounded-[2.5rem] border border-white/5 relative overflow-hidden group">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/10 blur-[50px] -mr-16 -mt-16 pointer-events-none" />
+            <div className="flex items-center gap-2 mb-4">
+              <div className="w-1.5 h-4 bg-yellow-500 rounded-full" />
+              <h3 className="text-sm font-display font-extrabold uppercase tracking-wide text-white">Posição no ranking</h3>
             </div>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-2xl bg-black/40 flex items-center justify-center text-xl font-black italic border border-white/5">
-                  #7
-                </div>
-                <div>
-                  <p className="text-lg font-bold">R$ 12,40</p>
-                  <p className="text-[10px] text-muted-foreground font-medium uppercase">Faltam para o <span className="text-purple-400">#6</span></p>
-                </div>
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-[14px] bg-gradient-to-b from-amber-500/20 to-amber-500/5 flex items-center justify-center border border-amber-500/20">
+                <span className="text-xl font-black text-amber-500 italic">#1</span>
               </div>
-              <TrendingUp className="text-green-500" />
+              <div>
+                <p className="text-2xl font-black text-white">R$ 23,40</p>
+                <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">Saldo gerado</p>
+              </div>
             </div>
           </div>
 
           {/* Ranking Widget */}
-          <div className="glass-card p-8 rounded-[2.5rem] purple-glow">
-            <div className="flex items-center justify-between mb-8">
-              <h3 className="text-xl font-display font-extrabold tracking-tight uppercase italic"><Trophy size={20} className="inline mr-2 text-amber-500" /> Top <span className="text-purple-500">Afiliados</span></h3>
-              <span className="text-[10px] font-bold text-muted-foreground uppercase bg-white/5 px-2 py-1 rounded-lg">Mensal</span>
+          <div className="glass-card p-6 rounded-[2.5rem] border border-white/5 relative">
+            <div className="flex items-center mb-6 gap-2">
+              <Trophy size={18} className="text-amber-500" />
+              <h3 className="text-[15px] font-display font-extrabold tracking-wide text-white">
+                Top Afiliados <span className="text-purple-500 font-bold">do Mês</span>
+              </h3>
             </div>
-            <div className="space-y-6">
+            <div className="space-y-4">
               {ranking.map((aff) => (
-                <div key={aff.rank} className="flex items-center justify-between group">
-                  <div className="flex items-center gap-4">
+                <div key={aff.rank} className="flex items-center justify-between group p-2 hover:bg-white/5 rounded-2xl transition-colors">
+                  <div className="flex items-center gap-3">
+                    <span className="text-xs font-bold text-muted-foreground w-4">#{aff.rank}</span>
                     <div className="relative">
-                      <img src={aff.avatarUrl} alt={aff.username} className="w-12 h-12 rounded-2xl border-2 border-white/5 relative z-10" />
-                      {aff.rank === 1 && <div className="absolute -top-1 -right-1 w-4 h-4 bg-amber-500 rounded-full z-20 flex items-center justify-center border-2 border-[#110d21]"><span className="text-[8px] font-bold">1</span></div>}
+                      <img src={aff.avatarUrl} alt={aff.username} className="w-10 h-10 rounded-xl border border-white/10" />
                     </div>
                     <div>
-                      <p className="text-sm font-bold group-hover:text-purple-400 transition-colors">{aff.username}</p>
-                      <p className="text-[10px] text-muted-foreground font-medium flex items-center gap-1">
-                        <Users size={10} /> vendas
+                      <p className="text-sm font-bold text-white leading-tight">{aff.username}</p>
+                      <p className="text-[10px] text-muted-foreground font-medium flex items-center gap-1 mt-0.5">
+                        <div className="w-1.5 h-1.5 bg-yellow-500 rounded-full" /> Vendas hoje: 14
                       </p>
                     </div>
                   </div>
@@ -351,7 +358,8 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
                 </div>
               ))}
             </div>
-            <button className="w-full mt-10 py-4 bg-purple-500/10 hover:bg-purple-500/20 text-purple-400 rounded-2xl text-[10px] font-extrabold uppercase tracking-[0.1em] transition-all">
+            <button className="w-full mt-6 py-3.5 bg-[#1B1231] hover:bg-purple-500/20 text-purple-400 rounded-2xl text-xs font-bold transition-colors border border-purple-500/20 flex items-center justify-center gap-2">
+              <TrendingUp size={14} />
               Seguir este ranking
             </button>
           </div>
