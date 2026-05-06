@@ -20,33 +20,10 @@ interface DashboardProps {
   onLogout: () => void;
 }
 
-const PERFORMANCE_DATA: PerformanceData[] = [
-  { name: '28/04', earnings: 0.5, clicks: 12 },
-  { name: '29/04', earnings: 0.8, clicks: 15 },
-  { name: '30/04', earnings: 0.2, clicks: 8 },
-  { name: '01/05', earnings: 1.2, clicks: 22 },
-  { name: '02/05', earnings: 0.4, clicks: 10 },
-  { name: '03/05', earnings: 2.14, clicks: 28 },
-  { name: '04/05', earnings: 1.5, clicks: 18 },
-];
-
-const TOP_AFFILIATES: TopAffiliate[] = [
-  { rank: 1, username: 'metildes_xpt', avatarUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=metildes', commission: 'R$ 55,74' },
-  { rank: 2, username: 'i0v3r', avatarUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=i0v3r', commission: 'R$ 38,20' },
-  { rank: 3, username: 'Jakasinho', avatarUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Jakasinho', commission: 'R$ 25,43' },
-];
-
-const SOLD_ITEMS: SoldItem[] = [
-  { id: '1', name: 'Drip-Gray Jeans', price: 'R$ 0,14', salesCount: 12, image: 'https://api.dicebear.com/7.x/shapes/svg?seed=jeans' },
-  { id: '2', name: 'All Black Realistic Shirt', price: 'R$ 0,12', salesCount: 8, image: 'https://api.dicebear.com/7.x/shapes/svg?seed=shirt' },
-  { id: '3', name: 'Supremacy for Light', price: 'R$ 0,02', salesCount: 45, image: 'https://api.dicebear.com/7.x/shapes/svg?seed=light' },
-];
-
-const RECENT_WITHDRAWALS: Withdrawal[] = [
-  { id: '1', date: '30 de mar', amount: 'R$ 25,80', status: 'approved', pixKey: '***.456.***-89', recipient: 'João Silva' },
-  { id: '2', date: '25 de abr', amount: 'R$ 0,32', status: 'pending', pixKey: 'joao@email.com', recipient: 'João Silva' },
-  { id: '3', date: '12 de abr', amount: 'R$ 0,05', status: 'rejected', pixKey: '(11) 99999-9999', recipient: 'João Silva' },
-];
+const PERFORMANCE_DATA: PerformanceData[] = [];
+const TOP_AFFILIATES: TopAffiliate[] = [];
+const SOLD_ITEMS: SoldItem[] = [];
+const RECENT_WITHDRAWALS: Withdrawal[] = [];
 
 export default function Dashboard({ user, onLogout }: DashboardProps) {
   const [isWithdrawalModalOpen, setIsWithdrawalModalOpen] = useState(false);

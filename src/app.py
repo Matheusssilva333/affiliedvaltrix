@@ -247,7 +247,7 @@ def get_affiliate(username):
 
         return jsonify({
             'stats': {
-                'clicks': clicks_count if clicks_count > 0 else sales_count * 3 + 12,
+                'clicks': clicks_count,
                 'sales': sales_count,
                 'earnings': f'R$ {total_earnings:,.2f}'.replace('.', 'v').replace(',', '.').replace('v', ','),
                 'available': f'R$ {available_balance:,.2f}'.replace('.', 'v').replace(',', '.').replace('v', ',')
