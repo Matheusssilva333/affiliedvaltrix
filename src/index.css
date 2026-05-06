@@ -3,17 +3,18 @@
 
 @theme {
   --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
 }
 
 :root {
-  --background: #04020b;
+  --background: #07050e;
   --foreground: #ffffff;
-  --card: #110d21;
+  --card: #130e24;
   --card-foreground: #ffffff;
-  --popover: #110d21;
+  --popover: #130e24;
   --popover-foreground: #ffffff;
-  --primary: #a855f7;
+  --primary: #9b4dff;
   --primary-foreground: #ffffff;
   --secondary: #221b3d;
   --secondary-foreground: #ffffff;

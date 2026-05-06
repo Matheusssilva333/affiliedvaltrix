@@ -51,6 +51,40 @@ def write_db(data):
     with open(DB_FILE, 'w') as f:
         json.dump(data, f, indent=2)
 
+def get_roblox_user_id(username):
+    try:
+        user_resp = requests.post("https://users.roblox.com/v1/usernames/users", json={"usernames": [username]}, timeout=5).json()
+        data = user_resp.get("data", [])
+        if data:
+            return data[0].get("id")
+    except Exception as e:
+        print(f"Error fetching Roblox user id for {username}: {e}")
+    return None
+
+def get_roblox_avatar(user_id, username):
+    if not user_id:
+        return f'https://api.dicebear.com/7.x/avataaars/svg?seed={username}'
+    try:
+        thumb_resp = requests.get(f"https://thumbnails.roblox.com/v1/users/avatar-headshot?userIds={user_id}&size=150x150&format=Png", timeout=5).json()
+        thumb_data = thumb_resp.get("data", [])
+        if thumb_data:
+            return thumb_data[0].get("imageUrl")
+    except Exception as e:
+        print(f"Error fetching Roblox avatar for {user_id}: {e}")
+    return f'https://api.dicebear.com/7.x/avataaars/svg?seed={username}'
+
+def get_roblox_item_thumbnails(item_ids):
+    if not item_ids:
+        return {}
+    try:
+        ids_str = ",".join([str(i) for i in item_ids])
+        resp = requests.get(f"https://thumbnails.roblox.com/v1/assets?assetIds={ids_str}&returnPolicy=PlaceHolder&size=150x150&format=Png", timeout=5).json()
+        data = resp.get("data", [])
+        return {str(item.get("targetId")): item.get("imageUrl") for item in data}
+    except Exception as e:
+        print(f"Error fetching Roblox item thumbnails: {e}")
+    return {}
+
 @app.route('/api/login', methods=['POST'])
 def login():
     try:
@@ -71,11 +105,14 @@ def login():
             db['affiliates'].append(affiliate)
             write_db(db)
 
+        user_id = get_roblox_user_id(username)
+        avatar_url = get_roblox_avatar(user_id, username)
+
         return jsonify({
             'success': True,
             'user': {
                 'username': username,
-                'avatarUrl': f'https://api.dicebear.com/7.x/avataaars/svg?seed={username}'
+                'avatarUrl': avatar_url
             }
         })
     except Exception as e:
@@ -141,10 +178,72 @@ def get_affiliate(username):
         withdrawals_history = [w for w in db.get('withdrawals', []) if w.get('username') == username]
         
         if not top_affiliates:
-            top_affiliates = [
-                { 'rank': 1, 'username': 'metildes_xpt', 'avatarUrl': 'https://api.dicebear.com/7.x/avataaars/svg?seed=metildes', 'commission': 'R$ 55,74' },
-                { 'rank': 2, 'username': 'i0v3r', 'avatarUrl': 'https://api.dicebear.com/7.x/avataaars/svg?seed=i0v3r', 'commission': 'R$ 38,20' }
-            ]
+            top_affiliates = []
+            
+        # Compute sold_items
+        sold_items_map = {}
+        for s in user_sales:
+            item_id = s.get('item_id')
+            if item_id not in sold_items_map:
+                sold_items_map[item_id] = {
+                    'id': str(item_id),
+                    'name': s.get('item_name', 'Item'),
+                    'price': f"R$ {float(s.get('item_price', 0)):.2f}".replace('.', ','),
+                    'salesCount': 0
+                }
+            sold_items_map[item_id]['salesCount'] += 1
+            
+        sold_items = list(sold_items_map.values())
+        sold_items.sort(key=lambda x: x['salesCount'], reverse=True)
+        
+        # Compute popular_items
+        popular_items_map = {}
+        all_confirmed_sales = [s for s in db['sales'] if s.get('status') == 'confirmed']
+        for s in all_confirmed_sales:
+            item_id = s.get('item_id')
+            if item_id not in popular_items_map:
+                popular_items_map[item_id] = {
+                    'id': str(item_id),
+                    'name': s.get('item_name', 'Item'),
+                    'price': f"R$ {float(s.get('item_price', 0)):.2f}".replace('.', ','),
+                    'salesCount': 0
+                }
+            popular_items_map[item_id]['salesCount'] += 1
+            
+        popular_items = list(popular_items_map.values())
+        popular_items.sort(key=lambda x: x['salesCount'], reverse=True)
+        
+        # Fetch item thumbnails
+        item_ids = list(set([i['id'] for i in sold_items] + [i['id'] for i in popular_items]))
+        thumbnails = get_roblox_item_thumbnails(item_ids)
+        
+        for item in sold_items:
+            item['image'] = thumbnails.get(item['id'], f"https://api.dicebear.com/7.x/shapes/svg?seed={item['id']}")
+            
+        for item in popular_items:
+            item['image'] = thumbnails.get(item['id'], f"https://api.dicebear.com/7.x/shapes/svg?seed={item['id']}")
+
+        # Fetch top affiliates avatars
+        usernames_to_fetch = [aff['username'] for aff in top_affiliates]
+        if usernames_to_fetch:
+            try:
+                user_resp = requests.post("https://users.roblox.com/v1/usernames/users", json={"usernames": usernames_to_fetch}, timeout=5).json()
+                data = user_resp.get("data", [])
+                user_id_map = {item['name'].lower(): item['id'] for item in data}
+                user_ids = list(user_id_map.values())
+                
+                if user_ids:
+                    ids_str = ",".join([str(i) for i in user_ids])
+                    thumb_resp = requests.get(f"https://thumbnails.roblox.com/v1/users/avatar-headshot?userIds={ids_str}&size=150x150&format=Png", timeout=5).json()
+                    thumb_data = thumb_resp.get("data", [])
+                    thumb_map = {item['targetId']: item['imageUrl'] for item in thumb_data}
+                    
+                    for aff in top_affiliates:
+                        uid = user_id_map.get(aff['username'].lower())
+                        if uid and uid in thumb_map:
+                            aff['avatarUrl'] = thumb_map[uid]
+            except Exception as e:
+                print(f"Error fetching top affiliates avatars: {e}")
 
         return jsonify({
             'stats': {
@@ -154,7 +253,9 @@ def get_affiliate(username):
                 'available': f'R$ {available_balance:,.2f}'.replace('.', 'v').replace(',', '.').replace('v', ',')
             },
             'ranking': top_affiliates,
-            'withdrawals': withdrawals_history
+            'withdrawals': withdrawals_history,
+            'sold_items': sold_items,
+            'popular_items': popular_items
         })
     except Exception as e:
         print(f"Affiliate error: {e}")

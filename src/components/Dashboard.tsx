@@ -58,6 +58,8 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
   const [withdrawals, setWithdrawals] = useState(RECENT_WITHDRAWALS);
   const [chartFilter, setChartFilter] = useState('7 dias');
   const [showAllItems, setShowAllItems] = useState(false);
+  const [soldItems, setSoldItems] = useState<SoldItem[]>(SOLD_ITEMS);
+  const [popularItems, setPopularItems] = useState<SoldItem[]>(SOLD_ITEMS);
 
   const refreshData = () => {
     fetch(`/api/affiliate/${user.username}`)
@@ -66,6 +68,8 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
         if (data.stats) setStats(data.stats);
         if (data.ranking) setRanking(data.ranking);
         if (data.withdrawals) setWithdrawals(data.withdrawals);
+        if (data.sold_items && data.sold_items.length > 0) setSoldItems(data.sold_items);
+        if (data.popular_items && data.popular_items.length > 0) setPopularItems(data.popular_items);
       })
       .catch(err => console.error(err));
   };
@@ -88,6 +92,12 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
       {/* Header */}
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-6 z-10 relative">
         <div className="flex items-center gap-6">
+          <div className="hidden md:flex items-center gap-2 mr-8">
+            <div className="w-8 h-8 rounded-xl bg-purple-500/20 flex items-center justify-center">
+              <Zap className="text-purple-500 w-5 h-5" />
+            </div>
+            <span className="font-display font-extrabold text-xl tracking-tight">Valtrix Afiliados</span>
+          </div>
           <div className="relative group">
             <div className="absolute inset-0 bg-purple-500 rounded-[2.5rem] blur-xl opacity-20 group-hover:opacity-40 transition-opacity" />
             <img
@@ -97,7 +107,7 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
             />
           </div>
           <div className="space-y-1">
-            <h1 className="text-3xl font-extrabold tracking-tighter">Olá, <span className="text-purple-500">{user.username}</span>! 🚀</h1>
+            <h1 className="text-3xl font-display font-extrabold tracking-tighter">Olá, <span className="text-purple-500">{user.username}</span>! 🚀</h1>
             <p className="text-muted-foreground text-sm font-medium">Acompanhe seus cliques, vendas e ganhos em tempo real.</p>
           </div>
         </div>
@@ -206,7 +216,7 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
           <div className="glass-card p-8 rounded-[2.5rem] purple-glow">
             <div className="flex items-center justify-between mb-8">
               <div className="space-y-1">
-                <h3 className="text-xl font-extrabold tracking-tight italic uppercase">Performance</h3>
+                <h3 className="text-xl font-display font-extrabold tracking-tight italic uppercase">Performance</h3>
                 <div className="flex items-center gap-4 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
                   <button className="text-purple-400 border-b border-purple-400 pb-0.5">Ganhos</button>
                   <button className="hover:text-white transition-colors">Cliques</button>
@@ -252,14 +262,14 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
             {/* Popular Items */}
             <div className="glass-card p-8 rounded-[2.5rem]">
               <div className="flex items-center justify-between mb-6">
-                <h3 className="text-xl font-extrabold tracking-tight uppercase italic">Itens <span className="text-purple-500">mais populares</span></h3>
+                <h3 className="text-xl font-display font-extrabold tracking-tight uppercase italic">Itens <span className="text-purple-500">mais populares</span></h3>
                 <div className="flex items-center gap-2 bg-black/40 p-1 rounded-lg">
                   <Star size={14} className="text-purple-500" />
                   <span className="text-[10px] font-bold uppercase text-purple-400">Ativos</span>
                 </div>
               </div>
               <div className="space-y-4">
-                {SOLD_ITEMS.slice(0, showAllItems ? undefined : 2).map((item) => (
+                {popularItems.slice(0, showAllItems ? undefined : 2).map((item) => (
                   <div key={item.id} className="flex items-center justify-between p-4 bg-white/5 rounded-2xl hover:bg-white/10 transition-colors group">
                     <div className="flex items-center gap-4">
                       <div className="w-12 h-12 rounded-xl bg-purple-500/10 flex items-center justify-center overflow-hidden border border-white/5">
@@ -287,13 +297,13 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
             {/* Sold Items Detail */}
             <div className="glass-card p-8 rounded-[2.5rem]">
               <div className="flex items-center justify-between mb-6">
-                <h3 className="text-xl font-extrabold tracking-tight uppercase italic">Seus <span className="text-purple-500">Itens Vendidos</span></h3>
+                <h3 className="text-xl font-display font-extrabold tracking-tight uppercase italic">Seus <span className="text-purple-500">Itens Vendidos</span></h3>
                 <button className="p-2 glass-card rounded-lg">
                   <ChevronDown size={14} />
                 </button>
               </div>
               <div className="space-y-4">
-                {SOLD_ITEMS.slice(0, 2).map((item, idx) => (
+                {soldItems.slice(0, 2).map((item, idx) => (
                   <div key={item.id} className="flex items-center justify-between p-4 bg-white/5 border-l-2 border-purple-500/50 rounded-r-2xl">
                     <div className="flex items-center gap-4">
                       <span className="text-2xl font-black text-white/20 italic">{idx + 1}</span>
@@ -323,7 +333,7 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
           <div className="glass-card p-8 rounded-[2.5rem] border-purple-500/20 bg-gradient-to-br from-purple-500/5 to-transparent">
             <div className="flex items-center gap-3 mb-4">
               <Zap size={20} className="text-purple-500" />
-              <h3 className="text-sm font-bold uppercase tracking-widest">Sua Posição <span className="text-purple-500">no Ranking</span></h3>
+              <h3 className="text-sm font-display font-bold uppercase tracking-widest">Sua Posição <span className="text-purple-500">no Ranking</span></h3>
             </div>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
@@ -342,7 +352,7 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
           {/* Ranking Widget */}
           <div className="glass-card p-8 rounded-[2.5rem] purple-glow">
             <div className="flex items-center justify-between mb-8">
-              <h3 className="text-xl font-extrabold tracking-tight uppercase italic"><Trophy size={20} className="inline mr-2 text-amber-500" /> Top <span className="text-purple-500">Afiliados</span></h3>
+              <h3 className="text-xl font-display font-extrabold tracking-tight uppercase italic"><Trophy size={20} className="inline mr-2 text-amber-500" /> Top <span className="text-purple-500">Afiliados</span></h3>
               <span className="text-[10px] font-bold text-muted-foreground uppercase bg-white/5 px-2 py-1 rounded-lg">Mensal</span>
             </div>
             <div className="space-y-6">
@@ -375,7 +385,7 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
               <div className="p-3 bg-white/5 rounded-2xl">
                 <HandCoins className="w-6 h-6 text-purple-400" />
               </div>
-              <h3 className="text-xl font-extrabold tracking-tight uppercase italic">Histórico de <span className="text-purple-500">saques</span></h3>
+              <h3 className="text-xl font-display font-extrabold tracking-tight uppercase italic">Histórico de <span className="text-purple-500">saques</span></h3>
             </div>
 
             <div className="space-y-4">
@@ -418,7 +428,7 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
           <div className="glass-card p-8 rounded-[2.5rem] space-y-6">
             <div className="flex items-center gap-3">
               <Zap className="text-purple-500" />
-              <h3 className="text-sm font-bold uppercase tracking-widest italic">Como <span className="text-purple-500">funciona?</span></h3>
+              <h3 className="text-sm font-display font-bold uppercase tracking-widest italic">Como <span className="text-purple-500">funciona?</span></h3>
             </div>
             <ul className="space-y-4">
               {[
@@ -444,7 +454,7 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
           <div className="glass-card p-8 rounded-[2.5rem] border-muted bg-white/[0.02]">
             <div className="flex items-center gap-3 mb-6">
               <ShieldCheck className="text-muted-foreground" />
-              <h3 className="text-sm font-bold uppercase tracking-widest text-muted-foreground italic">Regras e Info</h3>
+              <h3 className="text-sm font-display font-bold uppercase tracking-widest text-muted-foreground italic">Regras e Info</h3>
             </div>
             <div className="space-y-4">
               {[
