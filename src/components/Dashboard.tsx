@@ -119,8 +119,8 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
 
           <div className="glass-card p-4 rounded-2.5xl flex items-center justify-between group mb-8">
             <div className="flex items-center gap-4">
-              <span className="text-sm font-bold text-white tracking-wide">
-                valtrix-8lren.vercel.app/?ref=9DC3A
+              <span className="text-sm font-bold text-white tracking-wide truncate max-w-[200px] md:max-w-none">
+                {affiliateLink.replace(/^https?:\/\//, '')}
               </span>
             </div>
             <button
@@ -136,36 +136,38 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <StatsCard
               label="Cliques no link"
-              value="16"
+              value={stats.clicks.toString()}
               icon={MousePointer2}
               variant="purple"
               delay={0.1}
             />
             <StatsCard
               label="Vendas Atribuídas"
-              value="15"
-              subValue="+ 0 novas"
+              value={stats.sales.toString()}
+              subValue="Total"
               icon={ShoppingBag}
               variant="cyan"
               delay={0.2}
             />
             <StatsCard
               label="Saldo gerado"
-              value="R$ 9,16"
-              subValue="Disponível agora"
+              value={stats.earnings}
+              subValue={`${stats.available} disponíveis`}
               icon={Trophy}
               variant="gold"
               delay={0.3}
               extraContent={
-                <div className="mt-4 p-3 bg-[#17112B] rounded-xl flex items-center gap-3 border border-white/5">
-                  <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Recente" alt="avatar" className="w-8 h-8 rounded-lg bg-black/50" />
-                  <div>
-                    <p className="text-xs font-bold text-white flex items-center gap-2">
-                      <span className="text-green-400">+</span> Recente R$ 5,00
-                    </p>
-                    <p className="text-[10px] text-muted-foreground">Vendido há 4 minutos</p>
+                soldItems.length > 0 ? (
+                  <div className="mt-4 p-3 bg-[#17112B] rounded-xl flex items-center gap-3 border border-white/5">
+                    <img src={soldItems[0].image} alt="item" className="w-8 h-8 rounded-lg bg-black/50 object-cover" />
+                    <div>
+                      <p className="text-xs font-bold text-white flex items-center gap-2">
+                        <span className="text-green-400">+</span> {soldItems[0].price}
+                      </p>
+                      <p className="text-[10px] text-muted-foreground truncate w-32">{soldItems[0].name}</p>
+                    </div>
                   </div>
-                </div>
+                ) : null
               }
             />
           </div>
@@ -175,19 +177,21 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
             <div className="glass-card p-5 rounded-3xl flex items-center justify-between">
               <div className="space-y-1">
                 <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Última venda</p>
-                <p className="text-base font-bold text-white">Hoje às <span className="text-white">20:52</span></p>
+                <p className="text-base font-bold text-white">{stats.sales > 0 ? "Realizada" : "Nenhuma"}</p>
               </div>
             </div>
             <div className="glass-card p-5 rounded-3xl flex items-center justify-between">
               <div className="space-y-1">
                 <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Saldo gerado</p>
-                <p className="text-xl font-bold text-white">R$ 0,61</p>
+                <p className="text-xl font-bold text-white">{stats.earnings}</p>
               </div>
             </div>
             <div className="glass-card p-5 rounded-3xl flex items-center justify-between">
               <div className="space-y-1">
                 <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Taxa de conversão</p>
-                <p className="text-xl font-bold text-green-400">93,75%</p>
+                <p className="text-xl font-bold text-green-400">
+                  {stats.clicks > 0 ? ((stats.sales / stats.clicks) * 100).toFixed(2) : '0.00'}%
+                </p>
               </div>
               <div className="flex gap-0.5 mt-auto">
                 <div className="w-1.5 h-4 rounded-full bg-green-500" />
@@ -322,10 +326,10 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
             </div>
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 rounded-[14px] bg-gradient-to-b from-amber-500/20 to-amber-500/5 flex items-center justify-center border border-amber-500/20">
-                <span className="text-xl font-black text-amber-500 italic">#1</span>
+                <span className="text-xl font-black text-amber-500 italic">#{ranking.findIndex(r => r.username === user.username) !== -1 ? ranking.findIndex(r => r.username === user.username) + 1 : '-'}</span>
               </div>
               <div>
-                <p className="text-2xl font-black text-white">R$ 23,40</p>
+                <p className="text-2xl font-black text-white">{stats.earnings}</p>
                 <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">Saldo gerado</p>
               </div>
             </div>
@@ -349,9 +353,6 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
                     </div>
                     <div>
                       <p className="text-sm font-bold text-white leading-tight">{aff.username}</p>
-                      <p className="text-[10px] text-muted-foreground font-medium flex items-center gap-1 mt-0.5">
-                        <div className="w-1.5 h-1.5 bg-yellow-500 rounded-full" /> Vendas hoje: 14
-                      </p>
                     </div>
                   </div>
                   <span className="text-sm font-extrabold text-green-400">{aff.commission}</span>
