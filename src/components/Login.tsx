@@ -5,7 +5,7 @@ import { cn } from '@/src/lib/utils';
 import ParticleBackground from './ParticleBackground';
 
 interface LoginProps {
-  onLogin: (username: string) => void;
+  onLogin: (username: string, avatarUrl: string) => void;
 }
 
 export default function Login({ onLogin }: LoginProps) {
@@ -29,7 +29,7 @@ export default function Login({ onLogin }: LoginProps) {
       const data = await response.json();
       
       if (response.ok && data.success) {
-        onLogin(username);
+        onLogin(data.user.username, data.user.avatarUrl);
       } else {
         setError(data.error || 'Erro ao fazer login');
       }

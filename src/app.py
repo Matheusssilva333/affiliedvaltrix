@@ -2,6 +2,7 @@ import os
 import uuid
 import json
 import datetime
+import time
 from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 import requests
@@ -12,7 +13,6 @@ load_dotenv()
 
 # Configure static folder with absolute path
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-# Try root/dist (if app.py is in root/src) or root/dist (if app.py is in root)
 STATIC_FOLDER = os.path.abspath(os.path.join(BASE_DIR, '../dist'))
 if not os.path.exists(STATIC_FOLDER):
     STATIC_FOLDER = os.path.abspath(os.path.join(BASE_DIR, 'dist'))
@@ -28,14 +28,26 @@ PORT = int(os.environ.get('PORT', 10000))
 DB_FILE = os.path.join(os.path.dirname(__file__), 'db.json')
 API_SECRET = os.environ.get('API_SECRET')
 
+# Curated list of real Roblox items for the store (Asset IDs)
+STORE_ITEM_IDS = [
+    138992311, # Korblox Deathspeaker
+    233018029, # Super Super Happy Face
+    21070012,  # Dominus Empyreus
+    439945661, # Valkyrie Helm
+    1029025,   # Federation Conqueror
+    1365767    # Headless Horseman
+]
+
 def init_db():
     if not os.path.exists(DB_FILE):
         initial_data = {
             "users": [],
             "affiliates": [],
             "sales": [],
+            "clicks": [],
             "withdrawals": [],
             "config": {
+                "commission_rate": 0.10, # 10% profit for affiliate
                 "lastUpdate": datetime.datetime.now().isoformat()
             }
         }
@@ -44,8 +56,13 @@ def init_db():
         print('Local database initialized.')
 
 def read_db():
-    with open(DB_FILE, 'r') as f:
-        return json.load(f)
+    try:
+        with open(DB_FILE, 'r') as f:
+            return json.load(f)
+    except:
+        init_db()
+        with open(DB_FILE, 'r') as f:
+            return json.load(f)
 
 def write_db(data):
     with open(DB_FILE, 'w') as f:
@@ -73,6 +90,46 @@ def get_roblox_avatar(user_id, username):
         print(f"Error fetching Roblox avatar for {user_id}: {e}")
     return f'https://api.dicebear.com/7.x/avataaars/svg?seed={username}'
 
+def get_roblox_item_details(item_ids):
+    if not item_ids:
+        return []
+    try:
+        # Fetch basic details (name, description)
+        details_resp = requests.post("https://catalog.roblox.com/v1/catalog/items/details", json={
+            "items": [{"itemType": "Asset", "id": i} for i in item_ids]
+        }, timeout=5).json()
+        
+        items_data = details_resp.get("data", [])
+        
+        # Fetch thumbnails
+        ids_str = ",".join([str(i) for i in item_ids])
+        thumb_resp = requests.get(f"https://thumbnails.roblox.com/v1/assets?assetIds={ids_str}&size=150x150&format=Png", timeout=5).json()
+        thumb_data = {str(t['targetId']): t['imageUrl'] for t in thumb_resp.get("data", [])}
+        
+        # Enrich data
+        enriched_items = []
+        for item in items_data:
+            asset_id = str(item.get("id"))
+            # In a real scenario, the R$ price might be converted to BRL
+            # For this demo, we'll assign a symbolic BRL price based on their rarity
+            # 1 Robux ≈ R$ 0.05 (approximate value for profit calculation)
+            robux_price = item.get("price", 1000)
+            brl_price = max(10.0, float(robux_price) * 0.05)
+            
+            enriched_items.append({
+                "id": asset_id,
+                "name": item.get("name"),
+                "description": item.get("description"),
+                "price": brl_price,
+                "price_formatted": f"R$ {brl_price:,.2f}".replace('.', 'v').replace(',', '.').replace('v', ','),
+                "image": thumb_data.get(asset_id),
+                "robux_price": robux_price
+            })
+        return enriched_items
+    except Exception as e:
+        print(f"Error fetching Roblox item details: {e}")
+        return []
+
 def get_roblox_item_thumbnails(item_ids):
     if not item_ids:
         return {}
@@ -85,6 +142,11 @@ def get_roblox_item_thumbnails(item_ids):
         print(f"Error fetching Roblox item thumbnails: {e}")
     return {}
 
+@app.route('/api/products', methods=['GET'])
+def get_products():
+    items = get_roblox_item_details(STORE_ITEM_IDS)
+    return jsonify(items)
+
 @app.route('/api/login', methods=['POST'])
 def login():
     try:
@@ -95,7 +157,7 @@ def login():
             return jsonify({'error': 'Missing username'}), 400
 
         db = read_db()
-        affiliate = next((a for a in db['affiliates'] if a['username'] == username), None)
+        affiliate = next((a for a in db['affiliates'] if a['username'].lower() == username.lower()), None)
 
         if not affiliate:
             affiliate = {
@@ -126,7 +188,9 @@ def get_affiliate(username):
         now = datetime.datetime.now()
         seven_days_ago = now - datetime.timedelta(days=7)
         
-        user_sales = [s for s in db['sales'] if s.get('code') == username and s.get('status') == 'confirmed']
+        commission_rate = db.get('config', {}).get('commission_rate', 0.10)
+        
+        user_sales = [s for s in db['sales'] if s.get('code', '').lower() == username.lower() and s.get('status') == 'confirmed']
         sales_count = len(user_sales)
         
         total_earnings = 0
@@ -134,7 +198,7 @@ def get_affiliate(username):
         
         for s in user_sales:
             price = float(s.get('item_price', 0))
-            commission = price * 0.1
+            commission = price * commission_rate
             total_earnings += commission
             
             confirmed_at_str = s.get('confirmedAt')
@@ -144,21 +208,28 @@ def get_affiliate(username):
                     available_balance += commission
         
         # Calculate withdrawals already made
-        user_withdrawals = [w for w in db.get('withdrawals', []) if w.get('username') == username and w.get('status') != 'rejected']
-        withdrawn_amount = sum(float(w.get('amount', 'R$ 0').replace('R$ ', '').replace(',', '.')) for w in user_withdrawals)
+        user_withdrawals = [w for w in db.get('withdrawals', []) if w.get('username').lower() == username.lower() and w.get('status') != 'rejected']
+        withdrawn_amount = 0
+        for w in user_withdrawals:
+            try:
+                amt = float(w.get('amount', 'R$ 0').replace('R$ ', '').replace('.', '').replace(',', '.'))
+                withdrawn_amount += amt
+            except:
+                pass
         
         available_balance = max(0, available_balance - withdrawn_amount)
 
         # Real clicks tracking
-        clicks_count = len([c for c in db.get('clicks', []) if c.get('code') == username])
+        clicks_count = len([c for c in db.get('clicks', []) if c.get('code', '').lower() == username.lower()])
         
         affiliates_map = {}
         for s in db['sales']:
             if s.get('status') == 'confirmed':
                 code = s.get('code')
+                if not code: continue
                 if code not in affiliates_map:
                     affiliates_map[code] = 0
-                affiliates_map[code] += float(s.get('item_price', 0)) * 0.1
+                affiliates_map[code] += float(s.get('item_price', 0)) * commission_rate
         
         top_affiliates = []
         for u, comm in affiliates_map.items():
@@ -175,11 +246,8 @@ def get_affiliate(username):
         
         top_affiliates = top_affiliates[:5]
         
-        withdrawals_history = [w for w in db.get('withdrawals', []) if w.get('username') == username]
+        withdrawals_history = [w for w in db.get('withdrawals', []) if w.get('username').lower() == username.lower()]
         
-        if not top_affiliates:
-            top_affiliates = []
-            
         # Compute sold_items
         sold_items_map = {}
         for s in user_sales:
@@ -196,7 +264,7 @@ def get_affiliate(username):
         sold_items = list(sold_items_map.values())
         sold_items.sort(key=lambda x: x['salesCount'], reverse=True)
         
-        # Compute popular_items
+        # Compute popular_items (all confirmed sales across platform)
         popular_items_map = {}
         all_confirmed_sales = [s for s in db['sales'] if s.get('status') == 'confirmed']
         for s in all_confirmed_sales:
@@ -214,8 +282,8 @@ def get_affiliate(username):
         popular_items.sort(key=lambda x: x['salesCount'], reverse=True)
         
         # Fetch item thumbnails
-        item_ids = list(set([i['id'] for i in sold_items] + [i['id'] for i in popular_items]))
-        thumbnails = get_roblox_item_thumbnails(item_ids)
+        item_ids_to_fetch = list(set([i['id'] for i in sold_items] + [i['id'] for i in popular_items]))
+        thumbnails = get_roblox_item_thumbnails(item_ids_to_fetch)
         
         for item in sold_items:
             item['image'] = thumbnails.get(item['id'], f"https://api.dicebear.com/7.x/shapes/svg?seed={item['id']}")
@@ -245,6 +313,31 @@ def get_affiliate(username):
             except Exception as e:
                 print(f"Error fetching top affiliates avatars: {e}")
 
+        # Compute performance chart data (last 30 days)
+        performance_map = {}
+        for i in range(30):
+            d = (now - datetime.timedelta(days=i)).strftime('%Y-%m-%d')
+            performance_map[d] = {'earnings': 0, 'clicks': 0}
+            
+        for s in user_sales:
+            d = datetime.datetime.fromisoformat(s['confirmedAt']).strftime('%Y-%m-%d')
+            if d in performance_map:
+                performance_map[d]['earnings'] += float(s.get('item_price', 0)) * commission_rate
+        
+        for c in db.get('clicks', []):
+            if c.get('code', '').lower() == username.lower():
+                d = datetime.datetime.fromisoformat(c['timestamp']).strftime('%Y-%m-%d')
+                if d in performance_map:
+                    performance_map[d]['clicks'] += 1
+                    
+        performance_data = []
+        for d, vals in sorted(performance_map.items()):
+            performance_data.append({
+                'name': d,
+                'earnings': vals['earnings'],
+                'clicks': vals['clicks']
+            })
+
         return jsonify({
             'stats': {
                 'clicks': clicks_count,
@@ -253,6 +346,7 @@ def get_affiliate(username):
                 'available': f'R$ {available_balance:,.2f}'.replace('.', 'v').replace(',', '.').replace('v', ',')
             },
             'ranking': top_affiliates,
+            'performance': performance_data,
             'withdrawals': withdrawals_history,
             'sold_items': sold_items,
             'popular_items': popular_items
@@ -308,6 +402,15 @@ def register_click():
         if 'clicks' not in db:
             db['clicks'] = []
             
+        # Check if affiliate exists
+        affiliate_exists = any(a['username'].lower() == code.lower() for a in db['affiliates'])
+        if not affiliate_exists:
+            # Maybe auto-create or just ignore. Here we auto-create if it looks like a valid username
+            db['affiliates'].append({
+                'username': code,
+                'createdAt': datetime.datetime.now().isoformat()
+            })
+            
         db['clicks'].append({
             'code': code,
             'ip': request.remote_addr,
@@ -315,85 +418,6 @@ def register_click():
         })
         write_db(db)
         return jsonify({'success': True})
-    except Exception as e:
-        return jsonify({'error': 'Internal server error'}), 500
-
-@app.route('/api/db', methods=['GET'])
-def get_db():
-    key = request.headers.get('x-api-secret')
-    if key != API_SECRET:
-        return jsonify({'error': 'Unauthorized'}), 401
-    try:
-        return jsonify(read_db())
-    except Exception as e:
-        return jsonify({'error': 'Failed to read database'}), 500
-
-@app.route('/api/save', methods=['POST'])
-def save_db():
-    key = request.headers.get('x-api-secret')
-    if key != API_SECRET:
-        return jsonify({'error': 'Unauthorized'}), 401
-    try:
-        data = request.json
-        collection = data.get('collection')
-        item_data = data.get('data')
-        
-        db = read_db()
-        if collection not in db:
-            db[collection] = []
-            
-        new_item = {
-            **item_data,
-            'id': str(uuid.uuid4()),
-            'createdAt': datetime.datetime.now().isoformat()
-        }
-        db[collection].append(new_item)
-        write_db(db)
-        
-        return jsonify({'success': True, 'item': new_item})
-    except Exception as e:
-        return jsonify({'error': 'Failed to save to database'}), 500
-
-@app.route('/api/affiliate', methods=['POST'])
-def affiliate_action():
-    key = request.headers.get('x-api-secret')
-    if key != API_SECRET:
-        return jsonify({'error': 'Unauthorized'}), 401
-    try:
-        data = request.json
-        action = data.get('action')
-        
-        db = read_db()
-        
-        if action == 'create_session':
-            new_token = f"local_session_{uuid.uuid4()}"
-            db['sales'].append({
-                'token': new_token,
-                'code': data.get('code'),
-                'item_id': data.get('item_id'),
-                'item_name': data.get('item_name'),
-                'item_price': data.get('item_price'),
-                'status': 'pending',
-                'createdAt': datetime.datetime.now().isoformat()
-            })
-            write_db(db)
-            return jsonify({'token': new_token})
-            
-        if action == 'confirm_purchase':
-            token = data.get('token')
-            buyer_uid = data.get('buyer_uid')
-            
-            for sale in db['sales']:
-                if sale.get('token') == token:
-                    sale['status'] = 'confirmed'
-                    sale['buyer_uid'] = buyer_uid
-                    sale['confirmedAt'] = datetime.datetime.now().isoformat()
-                    write_db(db)
-                    commission = float(sale.get('item_price', 0)) * 0.1
-                    return jsonify({'ok': True, 'commission': f"{commission:.2f}"})
-            return jsonify({'ok': False, 'reason': 'Session not found'}), 404
-            
-        return jsonify({'error': 'Invalid action'}), 400
     except Exception as e:
         return jsonify({'error': 'Internal server error'}), 500
 
@@ -415,7 +439,7 @@ def create_checkout():
         preference_data = {
             "items": [
                 {
-                    "id": item_id,
+                    "id": str(item_id),
                     "title": item_name,
                     "quantity": 1,
                     "unit_price": item_price,
@@ -424,13 +448,13 @@ def create_checkout():
             ],
             "external_reference": json.dumps({
                 "affiliate_code": affiliate_code,
-                "item_id": item_id
+                "item_id": str(item_id)
             }),
             "notification_url": f"{request.host_url}api/webhook/mp",
             "back_urls": {
-                "success": f"{request.host_url}success",
-                "failure": f"{request.host_url}failure",
-                "pending": f"{request.host_url}pending"
+                "success": f"{request.host_url}#success",
+                "failure": f"{request.host_url}#failure",
+                "pending": f"{request.host_url}#pending"
             },
             "auto_return": "approved"
         }
@@ -442,9 +466,9 @@ def create_checkout():
         db = read_db()
         db['sales'].append({
             'id': preference['id'],
-            'token': f"mp_{preference['id']}",
+            'payment_id': None,
             'code': affiliate_code,
-            'item_id': item_id,
+            'item_id': str(item_id),
             'item_name': item_name,
             'item_price': item_price,
             'status': 'pending',
@@ -454,7 +478,7 @@ def create_checkout():
 
         return jsonify({
             'id': preference['id'],
-            'init_point': preference['init_point'] # Link para pagamento
+            'init_point': preference['init_point']
         })
     except Exception as e:
         print(f"Checkout error: {e}")
@@ -465,32 +489,40 @@ def mercadopago_webhook():
     if not sdk:
         return jsonify({'error': 'Not configured'}), 500
     try:
-        # Get notification data
         data = request.args
         topic = data.get('topic') or request.json.get('type')
-        id = data.get('id') or request.json.get('data', {}).get('id')
+        resource_id = data.get('id') or request.json.get('data', {}).get('id')
 
         if topic == 'payment':
-            payment_info_response = sdk.payment().get(id)
+            payment_info_response = sdk.payment().get(resource_id)
             payment_info = payment_info_response["response"]
             
             status = payment_info.get('status')
-            external_reference = json.loads(payment_info.get('external_reference', '{}'))
+            ext_ref_str = payment_info.get('external_reference', '{}')
+            
+            try:
+                external_reference = json.loads(ext_ref_str)
+            except:
+                external_reference = {}
             
             if status == 'approved':
                 db = read_db()
-                # Find pending sale
+                # Find pending sale and confirm it
+                updated = False
                 for sale in db['sales']:
-                    # Match by id or external reference
-                    if sale.get('item_id') == external_reference.get('item_id') and \
-                       sale.get('code') == external_reference.get('affiliate_code') and \
-                       sale.get('status') == 'pending':
-                        
-                        sale['status'] = 'confirmed'
-                        sale['payment_id'] = id
-                        sale['confirmedAt'] = datetime.datetime.now().isoformat()
-                        write_db(db)
-                        break
+                    if sale.get('status') == 'pending':
+                        # Match by item_id and affiliate_code from external_reference
+                        if str(sale.get('item_id')) == str(external_reference.get('item_id')) and \
+                           str(sale.get('code', '')).lower() == str(external_reference.get('affiliate_code', '')).lower():
+                            
+                            sale['status'] = 'confirmed'
+                            sale['payment_id'] = resource_id
+                            sale['confirmedAt'] = datetime.datetime.now().isoformat()
+                            updated = True
+                            break
+                
+                if updated:
+                    write_db(db)
         
         return jsonify({'status': 'ok'}), 200
     except Exception as e:
@@ -512,19 +544,14 @@ def proxy():
 @app.route('/', defaults={'path': ''})
 @app.route('/<path:path>')
 def serve(path):
-    # Try to serve requested static file
     if path != "" and os.path.exists(os.path.join(app.static_folder, path)):
         return send_from_directory(app.static_folder, path)
     
-    # Fallback to index.html for SPA routing
     index_path = os.path.join(app.static_folder, 'index.html')
     if os.path.exists(index_path):
         return send_from_directory(app.static_folder, 'index.html')
     else:
-        # Debug info for Render
-        parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        parent_contents = os.listdir(parent_dir) if os.path.exists(parent_dir) else "N/A"
-        return f"Static files not found at {app.static_folder}. Index exists: {os.path.exists(index_path)}. Root contents: {parent_contents}", 404
+        return f"Static files not found at {app.static_folder}", 404
 
 init_db()
 

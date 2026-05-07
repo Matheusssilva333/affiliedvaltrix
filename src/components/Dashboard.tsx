@@ -31,6 +31,7 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
   const [isCopied, setIsCopied] = useState(false);
 
   const [stats, setStats] = useState({ clicks: 0, sales: 0, earnings: 'R$ 0,00', available: 'R$ 0,00' });
+  const [performance, setPerformance] = useState<PerformanceData[]>([]);
   const [ranking, setRanking] = useState(TOP_AFFILIATES);
   const [withdrawals, setWithdrawals] = useState(RECENT_WITHDRAWALS);
   const [chartFilter, setChartFilter] = useState('7 dias');
@@ -44,6 +45,7 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
       .then(data => {
         if (data.stats) setStats(data.stats);
         if (data.ranking) setRanking(data.ranking);
+        if (data.performance) setPerformance(data.performance);
         if (data.withdrawals) setWithdrawals(data.withdrawals);
         if (data.sold_items && data.sold_items.length > 0) setSoldItems(data.sold_items);
         if (data.popular_items && data.popular_items.length > 0) setPopularItems(data.popular_items);
@@ -227,7 +229,7 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
               </div>
             </div>
 
-            <PerformanceChart data={PERFORMANCE_DATA.slice(
+            <PerformanceChart data={performance.slice(
               chartFilter === 'Hoje' ? -1 :
                 chartFilter === '7 dias' ? -7 :
                   chartFilter === '30 dias' ? -30 : 0
