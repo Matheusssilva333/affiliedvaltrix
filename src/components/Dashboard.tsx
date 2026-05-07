@@ -27,7 +27,8 @@ const RECENT_WITHDRAWALS: Withdrawal[] = [];
 
 export default function Dashboard({ user, onLogout }: DashboardProps) {
   const [isWithdrawalModalOpen, setIsWithdrawalModalOpen] = useState(false);
-  const affiliateLink = `https://valtrix-clientes.onrender.com/?ref=${user.username}`;
+  const baseUrl = typeof window !== 'undefined' ? window.location.origin : 'https://valtrix-clientes.onrender.com';
+  const affiliateLink = `${baseUrl}/?ref=${user.username}`;
   const [isCopied, setIsCopied] = useState(false);
 
   const [stats, setStats] = useState({ clicks: 0, sales: 0, earnings: 'R$ 0,00', available: 'R$ 0,00' });
@@ -58,9 +59,27 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
   }, [user.username]);
 
   const copyLink = () => {
-    navigator.clipboard.writeText(affiliateLink);
-    setIsCopied(true);
-    setTimeout(() => setIsCopied(false), 2000);
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(affiliateLink).then(() => {
+        setIsCopied(true);
+        setTimeout(() => setIsCopied(false), 2000);
+      }).catch(err => {
+        console.error('Failed to copy:', err);
+        // Fallback for non-secure contexts
+        const textArea = document.createElement("textarea");
+        textArea.value = affiliateLink;
+        document.body.appendChild(textArea);
+        textArea.select();
+        try {
+          document.execCommand('copy');
+          setIsCopied(true);
+          setTimeout(() => setIsCopied(false), 2000);
+        } catch (e) {
+          console.error('Fallback failed:', e);
+        }
+        document.body.removeChild(textArea);
+      });
+    }
   };
 
   return (
@@ -127,10 +146,15 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
             </div>
             <button
               onClick={copyLink}
-              className="flex items-center gap-2 px-4 py-2 bg-[#1B1231] hover:bg-purple-500/20 text-green-400 rounded-xl font-bold text-xs transition-colors border border-green-500/20"
+              className={cn(
+                "flex items-center gap-2 px-4 py-2 rounded-xl font-bold text-xs transition-all border",
+                isCopied 
+                  ? "bg-green-500/20 text-green-400 border-green-500/40" 
+                  : "bg-[#1B1231] hover:bg-purple-500/20 text-purple-400 border-purple-500/20"
+              )}
             >
-              <Copy size={14} />
-              <span>Copiar (em prod)</span>
+              {isCopied ? <CheckCircle2 size={14} /> : <Copy size={14} />}
+              <span>{isCopied ? 'Copiado!' : 'Copiar Link'}</span>
             </button>
           </div>
 
