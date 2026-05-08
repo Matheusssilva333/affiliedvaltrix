@@ -7,6 +7,10 @@ from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 import requests
 import mercadopago
+import bleach
+from flask_talisman import Talisman
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -19,6 +23,25 @@ if not os.path.exists(STATIC_FOLDER):
 
 app = Flask(__name__, static_folder=STATIC_FOLDER)
 CORS(app)
+
+# Security Headers (Talisman)
+csp = {
+    'default-src': '\'self\'',
+    'img-src': ['*', 'data:'],
+    'script-src': ['\'self\'', '\'unsafe-inline\'', '\'unsafe-eval\'', 'https://sdk.mercadopago.com'],
+    'style-src': ['\'self\'', '\'unsafe-inline\'', 'https://fonts.googleapis.com'],
+    'font-src': ['\'self\'', 'https://fonts.gstatic.com'],
+    'connect-src': ['\'self\'', 'https://api.roblox.com', 'https://catalog.roblox.com', 'https://thumbnails.roblox.com', 'https://api.mercadopago.com']
+}
+Talisman(app, content_security_policy=csp, force_https=False)
+
+# Rate Limiting (Flask-Limiter)
+limiter = Limiter(
+    get_remote_address,
+    app=app,
+    default_limits=["500 per day", "100 per hour"],
+    storage_uri="memory://",
+)
 
 # Mercado Pago Configuration
 MP_ACCESS_TOKEN = os.environ.get('MERCADOPAGO_ACCESS_TOKEN')
@@ -148,6 +171,7 @@ def get_products():
     return jsonify(items)
 
 @app.route('/api/login', methods=['POST'])
+@limiter.limit("5 per minute")
 def login():
     try:
         data = request.json
@@ -356,13 +380,14 @@ def get_affiliate(username):
         return jsonify({'error': 'Internal server error'}), 500
 
 @app.route('/api/withdrawal', methods=['POST'])
+@limiter.limit("3 per hour")
 def request_withdrawal():
     try:
         data = request.json
-        username = data.get('username')
+        username = bleach.clean(data.get('username'))
         amount_str = data.get('amount')
-        pix_key = data.get('pixKey')
-        recipient = data.get('recipient')
+        pix_key = bleach.clean(data.get('pixKey'))
+        recipient = bleach.clean(data.get('recipient'))
         
         if not username or not amount_str or not pix_key:
             return jsonify({'error': 'Missing data'}), 400
@@ -391,6 +416,7 @@ def request_withdrawal():
         return jsonify({'error': 'Internal server error'}), 500
 
 @app.route('/api/click', methods=['POST'])
+@limiter.limit("30 per minute")
 def register_click():
     try:
         data = request.json
