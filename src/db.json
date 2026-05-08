@@ -1,0 +1,87 @@
+{
+  "users": [],
+  "affiliates": [
+    {
+      "username": "Neguin_carecabrancaa",
+      "createdAt": "2026-05-07T20:00:00.000000"
+    }
+  ],
+  "sales": [
+    {
+      "id": "sim-001",
+      "payment_id": "pay-001",
+      "code": "Neguin_carecabrancaa",
+      "item_id": "138992311",
+      "item_name": "Korblox Deathspeaker",
+      "item_price": 850.0,
+      "status": "confirmed",
+      "createdAt": "2026-05-01T10:00:00.000000",
+      "confirmedAt": "2026-05-01T10:05:00.000000"
+    },
+    {
+      "id": "sim-002",
+      "payment_id": "pay-002",
+      "code": "Neguin_carecabrancaa",
+      "item_id": "233018029",
+      "item_name": "Super Super Happy Face",
+      "item_price": 2500.0,
+      "status": "confirmed",
+      "createdAt": "2026-05-05T14:30:00.000000",
+      "confirmedAt": "2026-05-05T14:35:00.000000"
+    },
+    {
+      "id": "sim-003",
+      "payment_id": "pay-003",
+      "code": "Neguin_carecabrancaa",
+      "item_id": "439945661",
+      "item_name": "Valkyrie Helm",
+      "item_price": 450.0,
+      "status": "confirmed",
+      "createdAt": "2026-05-07T18:00:00.000000",
+      "confirmedAt": "2026-05-07T18:05:00.000000"
+    },
+    {
+      "id": "sim-004",
+      "payment_id": "pay-004",
+      "code": "Neguin_carecabrancaa",
+      "item_id": "1365767",
+      "item_name": "Headless Horseman",
+      "item_price": 1550.0,
+      "status": "confirmed",
+      "createdAt": "2026-05-08T00:10:00.000000",
+      "confirmedAt": "2026-05-08T00:15:00.000000"
+    }
+  ],
+  "clicks": [
+    {
+      "code": "Neguin_carecabrancaa",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-05-01T09:00:00.000000"
+    },
+    {
+      "code": "Neguin_carecabrancaa",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-05-05T12:00:00.000000"
+    },
+    {
+      "code": "Neguin_carecabrancaa",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-05-07T15:00:00.000000"
+    },
+    {
+      "code": "Neguin_carecabrancaa",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-05-08T00:00:00.000000"
+    },
+    {
+      "code": "Neguin_carecabrancaa",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-05-08T00:05:00.000000"
+    }
+  ],
+  "withdrawals": [],
+  "config": {
+    "commission_rate": 0.1,
+    "lastUpdate": "2026-05-08T00:17:52.000000"
+  }
+}
