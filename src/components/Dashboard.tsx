@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { motion } from 'motion/react';
 import {
   Users, MousePointer2, TrendingUp, Trophy, Copy, ExternalLink,
-  ChevronDown, Bell, LogOut, Wallet, MoreVertical, Star,
+  ChevronDown, Bell, LogOut, Wallet, Star,
   HandCoins, Zap, ShieldCheck, ShoppingBag, CheckCircle2
 } from 'lucide-react';
 import { cn } from '@/src/lib/utils';
@@ -65,7 +65,6 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
         setTimeout(() => setIsCopied(false), 2000);
       }).catch(err => {
         console.error('Failed to copy:', err);
-        // Fallback for non-secure contexts
         const textArea = document.createElement("textarea");
         textArea.value = affiliateLink;
         document.body.appendChild(textArea);
@@ -83,168 +82,159 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
   };
 
   return (
-    <div className="min-h-screen bg-[#04020b] p-4 lg:p-8 space-y-8 max-w-[1600px] mx-auto text-white relative">
+    <div className="min-h-screen bg-[#04020b] p-4 lg:p-8 space-y-8 max-w-[1600px] mx-auto text-white relative font-sans">
       <div className="fixed inset-0 pointer-events-none opacity-40">
         <ParticleBackground />
       </div>
+      
       {/* Top Navbar */}
-      <nav className="flex items-center justify-between mb-8 z-10 relative bg-white/[0.02] p-4 rounded-3xl border border-white/5">
-        <div className="flex items-center gap-2">
-          <div className="w-1.5 h-4 bg-purple-500 rounded-full" />
-          <span className="font-display font-extrabold text-lg tracking-tight text-white">Valtrix Afiliados</span>
-        </div>
+      <nav className="flex items-center justify-between mb-8 z-10 relative bg-white/[0.02] px-6 py-4 rounded-[1.5rem] border border-white/5 backdrop-blur-md">
         <div className="flex items-center gap-3">
-          <div className="flex items-center gap-3 px-3 py-1.5 bg-black/40 rounded-full border border-white/5">
-            <img src={user.avatarUrl || "https://api.dicebear.com/7.x/avataaars/svg?seed=neguin"} alt="Avatar" className="w-6 h-6 rounded-full" />
-            <span className="text-xs font-bold text-white mr-2">{user.username}</span>
+          <div className="w-2 h-2 bg-purple-500 rounded-full shadow-[0_0_10px_#7c3aed]" />
+          <span className="font-black text-sm tracking-tight text-white uppercase italic">Valtrix <span className="text-purple-500">Afiliados</span></span>
+        </div>
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3 px-4 py-2 bg-black/40 rounded-xl border border-white/5 group hover:border-purple-500/30 transition-all">
+            <img src={user.avatarUrl} alt="Avatar" className="w-5 h-5 rounded-lg object-cover" />
+            <span className="text-[10px] font-black text-white/70 uppercase tracking-widest">{user.username}</span>
+            <div className="w-px h-3 bg-white/10 mx-1" />
+            <button onClick={onLogout} className="text-[10px] font-black text-red-400/70 hover:text-red-400 uppercase tracking-widest transition-colors">
+              Sair
+            </button>
           </div>
-          <button onClick={onLogout} className="px-4 py-2 bg-white/5 hover:bg-white/10 rounded-xl text-xs font-bold transition-colors">
-            Sair
-          </button>
         </div>
       </nav>
 
       {/* Header Greeting */}
-      <header className="flex items-center gap-6 mb-12 z-10 relative">
+      <header className="flex items-center gap-8 mb-12 z-10 relative px-4">
         <div className="relative group">
-          <div className="absolute inset-0 bg-yellow-500/20 rounded-[2rem] blur-xl opacity-40 transition-opacity" />
-          <div className="w-20 h-20 rounded-[2rem] relative z-10 border-2 border-yellow-500/40 bg-[#17112B] flex items-center justify-center overflow-hidden">
+          <div className="absolute inset-0 bg-purple-600/20 rounded-[2rem] blur-2xl opacity-40 group-hover:opacity-60 transition-opacity" />
+          <div className="w-24 h-24 rounded-[2rem] relative z-10 border border-white/10 bg-[#17112B] flex items-center justify-center overflow-hidden purple-glow">
             <img
-              src={user.avatarUrl || "https://api.dicebear.com/7.x/avataaars/svg?seed=neguin"}
+              src={user.avatarUrl}
               alt="Avatar"
-              className="w-full h-full object-cover"
+              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
             />
+          </div>
+          <div className="absolute -bottom-2 -right-2 w-8 h-8 bg-purple-600 rounded-xl flex items-center justify-center border-2 border-[#04020b] z-20">
+            <Star size={14} className="text-white fill-white" />
           </div>
         </div>
         <div className="space-y-1">
-          <h1 className="text-4xl font-display font-extrabold tracking-tight text-white">Olá, <span className="text-white">{user.username}</span>! 🚀</h1>
-          <p className="text-muted-foreground text-sm font-medium">Acompanhe seus cliques, vendas e ganhos em tempo real.</p>
+          <h1 className="text-5xl font-black tracking-tighter text-white italic uppercase">
+            Olá, <span className="text-white">{user.username.toLowerCase()}</span>! 🚀
+          </h1>
+          <p className="text-white/40 text-xs font-black uppercase tracking-[0.2em]">Acompanhe seus cliques, vendas e ganhos em tempo real.</p>
         </div>
       </header>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         {/* Left Column: Main Data */}
         <div className="lg:col-span-8 space-y-8">
-
           {/* Top Bar: Link & Period */}
-          <div className="flex items-center gap-2 mb-2">
-            <div className="p-1.5 bg-white/5 rounded-lg">
-              <div className="w-3 h-3 bg-yellow-500 rounded-[2px]" />
-            </div>
-            <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Período</span>
-            <button className="flex items-center gap-2 px-3 py-1 bg-purple-500/10 text-purple-400 rounded-lg text-xs font-bold transition-colors hover:bg-purple-500/20">
-              Últimos 30 dias
-              <ChevronDown size={14} />
-            </button>
-          </div>
-
-          <div className="glass-card p-4 rounded-2.5xl flex items-center justify-between group mb-8">
-            <div className="flex items-center gap-4">
-              <span className="text-sm font-bold text-white tracking-wide truncate max-w-[200px] md:max-w-none">
-                {affiliateLink.replace(/^https?:\/\//, '')}
-              </span>
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-white/5 rounded-lg border border-white/5">
+                <ExternalLink size={14} className="text-purple-400" />
+              </div>
+              <div className="flex flex-col">
+                <span className="text-[9px] font-black text-white/30 uppercase tracking-[0.2em]">Seu Link de Afiliado</span>
+                <span className="text-xs font-bold text-white tracking-wide truncate max-w-[200px] md:max-w-none">
+                  {affiliateLink.replace(/^https?:\/\//, '')}
+                </span>
+              </div>
             </div>
             <button
               onClick={copyLink}
               className={cn(
-                "flex items-center gap-2 px-4 py-2 rounded-xl font-bold text-xs transition-all border",
+                "flex items-center gap-2 px-5 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all border",
                 isCopied 
                   ? "bg-green-500/20 text-green-400 border-green-500/40" 
-                  : "bg-[#1B1231] hover:bg-purple-500/20 text-purple-400 border-purple-500/20"
+                  : "bg-purple-600 hover:bg-purple-500 text-white border-transparent shadow-lg shadow-purple-500/20"
               )}
             >
-              {isCopied ? <CheckCircle2 size={14} /> : <Copy size={14} />}
+              {isCopied ? <CheckCircle2 size={12} /> : <Copy size={12} />}
               <span>{isCopied ? 'Copiado!' : 'Copiar Link'}</span>
             </button>
           </div>
 
           {/* Stats Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <StatsCard
-              label="Cliques no link"
-              value={stats.clicks.toString()}
-              icon={MousePointer2}
-              variant="purple"
-              delay={0.1}
-            />
-            <StatsCard
-              label="Vendas Atribuídas"
-              value={stats.sales.toString()}
-              subValue="Total"
-              icon={ShoppingBag}
-              variant="cyan"
-              delay={0.2}
-            />
-            <StatsCard
-              label="Saldo gerado"
-              value={stats.earnings}
-              subValue={`${stats.available} disponíveis`}
-              icon={Trophy}
-              variant="gold"
-              delay={0.3}
-              extraContent={
-                soldItems.length > 0 ? (
-                  <div className="mt-4 p-3 bg-[#17112B] rounded-xl flex items-center gap-3 border border-white/5">
-                    <img src={soldItems[0].image} alt="item" className="w-8 h-8 rounded-lg bg-black/50 object-cover" />
-                    <div>
-                      <p className="text-xs font-bold text-white flex items-center gap-2">
-                        <span className="text-green-400">+</span> {soldItems[0].price}
-                      </p>
-                      <p className="text-[10px] text-muted-foreground truncate w-32">{soldItems[0].name}</p>
-                    </div>
-                  </div>
-                ) : null
-              }
-            />
+          <div className="relative">
+            <div className="absolute inset-0 stats-grid-gradient pointer-events-none" />
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative z-10">
+              <StatsCard
+                label="Cliques do link"
+                value={stats.clicks.toString()}
+                icon={MousePointer2}
+                variant="purple"
+                delay={0.1}
+              />
+              <StatsCard
+                label="Vendas Atribuídas"
+                value={stats.sales.toString()}
+                subValue="Confirmadas"
+                icon={ShoppingBag}
+                variant="cyan"
+                delay={0.2}
+              />
+              <StatsCard
+                label="Saldo gerado"
+                value={stats.earnings}
+                subValue="Pendentes/Disponíveis"
+                icon={Trophy}
+                variant="gold"
+                delay={0.3}
+              />
+            </div>
           </div>
 
           {/* Mini Stats Bar */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div className="glass-card p-5 rounded-3xl flex items-center justify-between">
-              <div className="space-y-1">
-                <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Última venda</p>
-                <p className="text-base font-bold text-white">{stats.sales > 0 ? "Realizada" : "Nenhuma"}</p>
-              </div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+            <div className="glass-card p-6 rounded-[2rem] border border-white/5">
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/30 mb-1">Última venda</p>
+              <p className="text-lg font-black text-white">{stats.sales > 0 ? "Hoje às 20:52" : "Nenhuma ainda"}</p>
             </div>
-            <div className="glass-card p-5 rounded-3xl flex items-center justify-between">
-              <div className="space-y-1">
-                <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Saldo gerado</p>
-                <p className="text-xl font-bold text-white">{stats.earnings}</p>
-              </div>
+            <div className="glass-card p-6 rounded-[2rem] border border-white/5">
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/30 mb-1">Lucro Estimado</p>
+              <p className="text-2xl font-black text-white">{stats.earnings}</p>
             </div>
-            <div className="glass-card p-5 rounded-3xl flex items-center justify-between">
-              <div className="space-y-1">
-                <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Taxa de conversão</p>
-                <p className="text-xl font-bold text-green-400">
+            <div className="glass-card p-6 rounded-[2rem] border border-white/5 relative overflow-hidden group">
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/30 mb-1">Taxa de conversão</p>
+              <div className="flex items-center gap-2">
+                <p className="text-2xl font-black text-green-400">
                   {stats.clicks > 0 ? ((stats.sales / stats.clicks) * 100).toFixed(2) : '0.00'}%
                 </p>
+                <div className="flex gap-0.5">
+                  <div className="w-1 h-3 rounded-full bg-green-500/40" />
+                  <div className="w-1 h-5 rounded-full bg-green-500" />
+                </div>
               </div>
-              <div className="flex gap-0.5 mt-auto">
-                <div className="w-1.5 h-4 rounded-full bg-green-500" />
-                <div className="w-1.5 h-6 rounded-full bg-green-500" />
-              </div>
+              <div className="absolute top-2 right-4 text-[8px] font-black text-green-500/50 uppercase tracking-widest">+2.4%</div>
             </div>
           </div>
 
           {/* Performance Chart */}
-          <div className="glass-card p-8 rounded-[2.5rem] purple-glow">
-            <div className="flex items-center justify-between mb-8">
+          <div className="glass-card p-8 rounded-[2.5rem] purple-glow border border-white/5">
+            <div className="flex items-center justify-between mb-10">
               <div className="space-y-1">
-                <h3 className="text-xl font-display font-extrabold tracking-tight italic uppercase">Performance</h3>
-                <div className="flex items-center gap-4 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                  <button className="text-purple-400 border-b border-purple-400 pb-0.5">Ganhos</button>
-                  <button className="hover:text-white transition-colors">Cliques</button>
-                  <button className="hover:text-white transition-colors">Vendas</button>
+                <h3 className="text-2xl font-black tracking-tighter italic uppercase">Performance</h3>
+                <div className="flex items-center gap-6">
+                  {['Ganhos', 'Cliques', 'Vendas'].map((type) => (
+                    <button key={type} className="text-[10px] font-black uppercase tracking-widest text-white/40 hover:text-white transition-colors flex items-center gap-2 group">
+                      <div className={cn("w-1.5 h-1.5 rounded-full", type === 'Ganhos' ? 'bg-purple-500' : 'bg-white/10')} />
+                      {type}
+                    </button>
+                  ))}
                 </div>
               </div>
-              <div className="flex items-center bg-black/40 p-1 rounded-xl">
-                {['Hoje', '7 dias', '30 dias', 'Este Mês', 'Total'].map((tab) => (
+              <div className="flex items-center bg-black/40 p-1 rounded-xl border border-white/5">
+                {['Hoje', '7 dias', '30 dias', 'Total'].map((tab) => (
                   <button
                     key={tab}
                     onClick={() => setChartFilter(tab)}
                     className={cn(
-                      "px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase transition-all",
-                      chartFilter === tab ? "bg-purple-500 text-white shadow-lg shadow-purple-500/20" : "text-muted-foreground hover:text-white"
+                      "px-4 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all",
+                      chartFilter === tab ? "bg-purple-600 text-white shadow-lg shadow-purple-500/20" : "text-white/40 hover:text-white"
                     )}
                   >
                     {tab}
@@ -253,20 +243,23 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
               </div>
             </div>
 
-            <PerformanceChart data={performance.slice(
-              chartFilter === 'Hoje' ? -1 :
-                chartFilter === '7 dias' ? -7 :
-                  chartFilter === '30 dias' ? -30 : 0
-            )} />
-
+            <div className="relative">
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-purple-500/5 blur-[100px] pointer-events-none" />
+              <PerformanceChart data={performance.slice(
+                chartFilter === 'Hoje' ? -1 :
+                  chartFilter === '7 dias' ? -7 :
+                    chartFilter === '30 dias' ? -30 : 0
+              )} />
+            </div>
+            
             <div className="mt-8 flex items-center justify-center">
-              <div className="px-6 py-3 bg-white/5 rounded-2xl flex items-center gap-4">
+              <div className="px-6 py-3 bg-white/5 rounded-2xl flex items-center gap-6 border border-white/5">
                 <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-purple-500" />
-                  <span className="text-[10px] font-bold uppercase text-muted-foreground">Ganhos Diários</span>
+                  <div className="w-2 h-2 rounded-full bg-purple-500 shadow-[0_0_8px_#7c3aed]" />
+                  <span className="text-[10px] font-black uppercase tracking-widest text-white/40">Ganhos Diários</span>
                 </div>
                 <div className="w-px h-4 bg-white/10" />
-                <p className="text-sm font-bold">Recorde: <span className="text-purple-400">R$ 4,12</span></p>
+                <p className="text-sm font-black italic uppercase tracking-tight">Recorde: <span className="text-purple-400">R$ 5,14</span></p>
               </div>
             </div>
           </div>
@@ -275,63 +268,56 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {/* Popular Items */}
             <div className="glass-card p-8 rounded-[2.5rem]">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="text-xl font-display font-extrabold tracking-tight uppercase italic">Itens <span className="text-purple-500">mais populares</span></h3>
-                <div className="flex items-center gap-2 bg-black/40 p-1 rounded-lg">
-                  <Star size={14} className="text-purple-500" />
-                  <span className="text-[10px] font-bold uppercase text-purple-400">Ativos</span>
+              <div className="flex items-center justify-between mb-8">
+                <h3 className="text-xl font-black tracking-tighter uppercase italic">Itens <span className="text-purple-500">mais populares</span></h3>
+                <div className="flex items-center gap-2 px-3 py-1 bg-purple-500/10 rounded-lg border border-purple-500/20">
+                  <Star size={12} className="text-purple-500 fill-purple-500" />
+                  <span className="text-[9px] font-black uppercase text-purple-400 tracking-widest">Em Alta</span>
                 </div>
               </div>
               <div className="space-y-4">
-                {popularItems.slice(0, showAllItems ? undefined : 2).map((item) => (
-                  <div key={item.id} className="flex items-center justify-between p-4 bg-white/5 rounded-2xl hover:bg-white/10 transition-colors group">
+                {popularItems.slice(0, 3).map((item) => (
+                  <div key={item.id} className="flex items-center justify-between p-4 bg-white/[0.02] rounded-2xl hover:bg-white/[0.05] transition-all group border border-transparent hover:border-white/5">
                     <div className="flex items-center gap-4">
                       <div className="w-12 h-12 rounded-xl bg-purple-500/10 flex items-center justify-center overflow-hidden border border-white/5">
                         <img src={item.image} alt={item.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform" />
                       </div>
                       <div className="space-y-0.5">
-                        <p className="text-sm font-bold truncate max-w-[120px]">{item.name}</p>
-                        <p className="text-[10px] font-medium text-muted-foreground uppercase">{item.salesCount} vendas • <span className="text-purple-400">R$ {parseFloat(item.price.slice(3).replace(',', '.')) * 0.1} comissão</span></p>
+                        <p className="text-sm font-black truncate max-w-[120px] uppercase italic tracking-tight">{item.name}</p>
+                        <p className="text-[9px] font-black text-white/30 uppercase tracking-[0.15em]">{item.salesCount} vendas • <span className="text-purple-400">Comissão R$ {parseFloat(item.price.slice(3).replace(',', '.')) * 0.1}</span></p>
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="text-sm font-extrabold">{item.price}</p>
-                      <p className="text-[9px] font-bold text-green-500 uppercase">Em alta</p>
+                      <p className="text-sm font-black italic tracking-tight">{item.price}</p>
                     </div>
                   </div>
                 ))}
               </div>
-              <button
-                onClick={() => setShowAllItems(!showAllItems)}
-                className="w-full mt-6 py-4 rounded-2xl border border-white/5 text-[10px] font-bold uppercase tracking-widest text-muted-foreground hover:bg-white/5 transition-colors">
-                {showAllItems ? 'Ocultar itens' : 'Ver todos os itens'}
-              </button>
             </div>
 
             {/* Sold Items Detail */}
             <div className="glass-card p-8 rounded-[2.5rem]">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="text-xl font-display font-extrabold tracking-tight uppercase italic">Seus <span className="text-purple-500">Itens Vendidos</span></h3>
-                <button className="p-2 glass-card rounded-lg">
-                  <ChevronDown size={14} />
-                </button>
+              <div className="flex items-center justify-between mb-8">
+                <h3 className="text-xl font-black tracking-tighter uppercase italic">Seus <span className="text-purple-500">Ganhos</span></h3>
+                <div className="px-3 py-1 bg-black/40 rounded-lg border border-white/5">
+                  <span className="text-[9px] font-black uppercase tracking-widest text-white/40">Recentes</span>
+                </div>
               </div>
               <div className="space-y-4">
-                {soldItems.slice(0, 2).map((item, idx) => (
-                  <div key={item.id} className="flex items-center justify-between p-4 bg-white/5 border-l-2 border-purple-500/50 rounded-r-2xl">
+                {soldItems.slice(0, 3).map((item, idx) => (
+                  <div key={item.id} className="flex items-center justify-between p-4 bg-white/[0.02] border-l-4 border-purple-600 rounded-r-2xl">
                     <div className="flex items-center gap-4">
-                      <span className="text-2xl font-black text-white/20 italic">{idx + 1}</span>
-                      <div className="w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center overflow-hidden">
+                      <span className="text-2xl font-black text-white/10 italic">0{idx + 1}</span>
+                      <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center overflow-hidden">
                         <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
                       </div>
                       <div className="space-y-0.5">
-                        <p className="text-sm font-bold truncate max-w-[100px]">{item.name}</p>
-                        <p className="text-[9px] font-medium text-muted-foreground uppercase">Revenue: <span className="text-white">R$ 5,00</span></p>
+                        <p className="text-sm font-black truncate max-w-[100px] uppercase italic tracking-tight">{item.name}</p>
+                        <p className="text-[9px] font-black text-white/30 uppercase tracking-widest">Lucro: <span className="text-green-400">R$ {(parseFloat(item.price.slice(3).replace(',', '.')) * 0.1).toFixed(2)}</span></p>
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="text-sm font-extrabold text-white">{item.price}</p>
-                      <p className="text-[9px] font-bold text-muted-foreground uppercase">Taxa por venda</p>
+                      <p className="text-sm font-black italic tracking-tight">{item.price}</p>
                     </div>
                   </div>
                 ))}
@@ -344,65 +330,66 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
         <aside className="lg:col-span-4 space-y-8">
 
           {/* Own Position */}
-          <div className="glass-card p-6 rounded-[2.5rem] border border-white/5 relative overflow-hidden group">
+          <div className="glass-card p-8 rounded-[2.5rem] border border-white/5 relative overflow-hidden group amber-glow">
             <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/10 blur-[50px] -mr-16 -mt-16 pointer-events-none" />
-            <div className="flex items-center gap-2 mb-4">
-              <div className="w-1.5 h-4 bg-yellow-500 rounded-full" />
-              <h3 className="text-sm font-display font-extrabold uppercase tracking-wide text-white">Posição no ranking</h3>
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-1.5 h-4 bg-amber-500 rounded-full shadow-[0_0_10px_rgba(245,158,11,0.5)]" />
+              <h3 className="text-xs font-black uppercase tracking-[0.2em] text-white">Posição no Ranking</h3>
             </div>
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-[14px] bg-gradient-to-b from-amber-500/20 to-amber-500/5 flex items-center justify-center border border-amber-500/20">
-                <span className="text-xl font-black text-amber-500 italic">#{ranking.findIndex(r => r.username === user.username) !== -1 ? ranking.findIndex(r => r.username === user.username) + 1 : '-'}</span>
+            <div className="flex items-center gap-6">
+              <div className="w-16 h-16 rounded-[1.5rem] bg-gradient-to-br from-amber-500/20 to-amber-500/5 flex items-center justify-center border border-amber-500/30">
+                <span className="text-3xl font-black text-amber-500 italic">#{ranking.findIndex(r => r.username === user.username) !== -1 ? ranking.findIndex(r => r.username === user.username) + 1 : '-'}</span>
               </div>
               <div>
-                <p className="text-2xl font-black text-white">{stats.earnings}</p>
-                <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">Saldo gerado</p>
+                <p className="text-3xl font-black italic text-white tracking-tighter">{stats.earnings}</p>
+                <p className="text-[10px] text-white/30 font-black uppercase tracking-[0.2em]">Total Gerado</p>
               </div>
             </div>
           </div>
 
           {/* Ranking Widget */}
-          <div className="glass-card p-6 rounded-[2.5rem] border border-white/5 relative">
-            <div className="flex items-center mb-6 gap-2">
-              <Trophy size={18} className="text-amber-500" />
-              <h3 className="text-[15px] font-display font-extrabold tracking-wide text-white">
-                Top Afiliados <span className="text-purple-500 font-bold">do Mês</span>
+          <div className="glass-card p-8 rounded-[2.5rem] border border-white/5 relative">
+            <div className="flex items-center mb-8 gap-3">
+              <Trophy size={20} className="text-amber-500" />
+              <h3 className="text-sm font-black uppercase tracking-[0.15em] text-white">
+                Top Afiliados <span className="text-purple-500">do Mês</span>
               </h3>
             </div>
-            <div className="space-y-4">
+            <div className="space-y-5">
               {ranking.map((aff) => (
-                <div key={aff.rank} className="flex items-center justify-between group p-2 hover:bg-white/5 rounded-2xl transition-colors">
-                  <div className="flex items-center gap-3">
-                    <span className="text-xs font-bold text-muted-foreground w-4">#{aff.rank}</span>
+                <div key={aff.rank} className="flex items-center justify-between group">
+                  <div className="flex items-center gap-4">
+                    <span className="text-[10px] font-black text-white/20 w-4">0{aff.rank}</span>
                     <div className="relative">
-                      <img src={aff.avatarUrl} alt={aff.username} className="w-10 h-10 rounded-xl border border-white/10" />
+                      <img src={aff.avatarUrl} alt={aff.username} className="w-10 h-10 rounded-xl border border-white/10 group-hover:border-purple-500/50 transition-colors" />
                     </div>
                     <div>
-                      <p className="text-sm font-bold text-white leading-tight">{aff.username}</p>
+                      <p className="text-sm font-black text-white italic uppercase tracking-tight">{aff.username}</p>
+                      <p className="text-[9px] font-black text-white/30 uppercase tracking-widest">Rank Atual</p>
                     </div>
                   </div>
-                  <span className="text-sm font-extrabold text-green-400">{aff.commission}</span>
+                  <span className="text-sm font-black text-green-400 italic tracking-tight">{aff.commission}</span>
                 </div>
               ))}
             </div>
-            <button className="w-full mt-6 py-3.5 bg-[#1B1231] hover:bg-purple-500/20 text-purple-400 rounded-2xl text-xs font-bold transition-colors border border-purple-500/20 flex items-center justify-center gap-2">
-              <TrendingUp size={14} />
-              Seguir este ranking
+            <button className="w-full mt-8 py-4 bg-[#1B1231] hover:bg-purple-600 hover:text-white text-purple-400 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] transition-all border border-purple-500/20 flex items-center justify-center gap-3 group">
+              <TrendingUp size={14} className="group-hover:translate-y-[-2px] transition-transform" />
+              Seguir Ranking
             </button>
           </div>
 
           {/* Withdrawal History Widget */}
-          <div className="glass-card p-8 rounded-[2.5rem] space-y-8">
-            <div className="flex items-center gap-3">
-              <div className="p-3 bg-white/5 rounded-2xl">
+          <div className="glass-card p-8 rounded-[2.5rem] space-y-8 border border-white/5">
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-white/5 rounded-2xl border border-white/5">
                 <HandCoins className="w-6 h-6 text-purple-400" />
               </div>
-              <h3 className="text-xl font-display font-extrabold tracking-tight uppercase italic">Histórico de <span className="text-purple-500">saques</span></h3>
+              <h3 className="text-xl font-black uppercase italic tracking-tighter">Histórico de <span className="text-purple-500">Saques</span></h3>
             </div>
 
             <div className="space-y-4">
               {withdrawals.map((w) => (
-                <div key={w.id} className="flex items-center justify-between p-4 bg-white/5 rounded-2xl">
+                <div key={w.id} className="flex items-center justify-between p-5 bg-white/[0.02] rounded-2xl border border-white/5 hover:bg-white/[0.04] transition-colors">
                   <div className="flex items-center gap-4">
                     <div className={cn(
                       "w-10 h-10 rounded-xl flex items-center justify-center",
@@ -410,15 +397,15 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
                         w.status === 'pending' ? "bg-amber-500/10 text-amber-400" :
                           "bg-red-500/10 text-red-400"
                     )}>
-                      <CheckCircle2 size={18} />
+                      <CheckCircle2 size={20} />
                     </div>
-                    <div>
-                      <p className="text-xs font-bold">{w.date}</p>
-                      <p className="text-[9px] text-muted-foreground uppercase">{w.pixKey}</p>
+                    <div className="space-y-0.5">
+                      <p className="text-[10px] font-black text-white uppercase italic tracking-widest">{w.date}</p>
+                      <p className="text-[9px] text-white/30 uppercase font-black tracking-[0.2em]">{w.pixKey}</p>
                     </div>
                   </div>
                   <span className={cn(
-                    "text-xs font-bold",
+                    "text-sm font-black italic tracking-tight",
                     w.status === 'approved' ? "text-green-400" :
                       w.status === 'pending' ? "text-amber-400" :
                         "text-red-400"
@@ -429,7 +416,7 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
 
             <button
               onClick={() => setIsWithdrawalModalOpen(true)}
-              className="w-full h-16 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-extrabold rounded-2xl shadow-lg shadow-purple-500/20 flex items-center justify-center gap-3 active:scale-95 transition-all"
+              className="w-full h-16 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-black uppercase italic tracking-widest rounded-2xl shadow-lg shadow-purple-500/20 flex items-center justify-center gap-3 active:scale-95 transition-all"
             >
               <Wallet size={20} />
               <span>Solicitar Saque</span>
@@ -437,12 +424,12 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
           </div>
 
           {/* How it works */}
-          <div className="glass-card p-8 rounded-[2.5rem] space-y-6">
+          <div className="glass-card p-8 rounded-[2.5rem] space-y-8 border border-white/5">
             <div className="flex items-center gap-3">
-              <Zap className="text-purple-500" />
-              <h3 className="text-sm font-display font-bold uppercase tracking-widest italic">Como <span className="text-purple-500">funciona?</span></h3>
+              <Zap className="text-purple-500 fill-purple-500" />
+              <h3 className="text-sm font-black uppercase tracking-[0.2em] italic">Como <span className="text-purple-500">funciona?</span></h3>
             </div>
-            <ul className="space-y-4">
+            <ul className="space-y-5">
               {[
                 'Copie seu link',
                 'Compartilhe seu link',
@@ -452,44 +439,21 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
                 'Solicite seu saque via Pix',
                 'Receba na sua conta!'
               ].map((step, idx) => (
-                <li key={idx} className="flex items-start gap-3 text-sm">
-                  <div className="w-5 h-5 rounded-full bg-purple-500/10 flex items-center justify-center shrink-0 mt-0.5">
+                <li key={idx} className="flex items-start gap-4">
+                  <div className="w-6 h-6 rounded-lg bg-purple-500/10 flex items-center justify-center shrink-0 mt-0.5 border border-purple-500/20">
                     <CheckCircle2 size={12} className="text-purple-500" />
                   </div>
-                  <span className="text-muted-foreground font-medium">{step}</span>
+                  <span className="text-white/60 text-[13px] font-black uppercase tracking-tight italic">{step}</span>
                 </li>
               ))}
             </ul>
           </div>
-
-          {/* Rules/Info */}
-          <div className="glass-card p-8 rounded-[2.5rem] border-muted bg-white/[0.02]">
-            <div className="flex items-center gap-3 mb-6">
-              <ShieldCheck className="text-muted-foreground" />
-              <h3 className="text-sm font-display font-bold uppercase tracking-widest text-muted-foreground italic">Regras e Info</h3>
-            </div>
-            <div className="space-y-4">
-              {[
-                { label: 'Aceito: Catálogo de Itens Atuais', color: 'text-purple-400' },
-                { label: 'Prazos: Ganhos em 7-14 dias', color: 'text-amber-400' },
-                { label: 'Mínimo: Saque a partir de R$ 10', color: 'text-purple-400' },
-                { label: 'Segurança: Bloqueamos compras frias', color: 'text-red-400' },
-                { label: 'Suporte: Respondemos em até 24h', color: 'text-purple-400' },
-              ].map((rule, idx) => (
-                <div key={idx} className="flex items-center gap-3">
-                  <div className="w-4 h-px bg-white/10" />
-                  <span className={cn("text-xs font-bold uppercase", rule.color)}>{rule.label}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-
         </aside>
       </div>
 
-      <footer className="pt-12 pb-6 text-center">
-        <p className="text-muted-foreground/30 text-[10px] uppercase font-bold tracking-[0.5em]">
-          Plataforma de Afiliados <span className="text-white">Valtrix</span>
+      <footer className="pt-20 pb-10 text-center">
+        <p className="text-white/10 text-[10px] uppercase font-black tracking-[0.8em]">
+          Valtrix Platform <span className="text-white/20">Official Affiliate</span>
         </p>
       </footer>
 

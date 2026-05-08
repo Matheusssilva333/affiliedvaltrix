@@ -1,5 +1,5 @@
 import React from 'react';
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from 'recharts';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { PerformanceData } from '@/src/types';
 
 interface PerformanceChartProps {
@@ -8,47 +8,59 @@ interface PerformanceChartProps {
 
 export default function PerformanceChart({ data }: PerformanceChartProps) {
   return (
-    <div className="w-full h-[300px] mt-4">
+    <div className="w-full h-[320px] relative">
       <ResponsiveContainer width="100%" height="100%">
-        <AreaChart data={data}>
+        <AreaChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
           <defs>
             <linearGradient id="colorEarnings" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#a855f7" stopOpacity={0.3}/>
-              <stop offset="95%" stopColor="#a855f7" stopOpacity={0}/>
+              <stop offset="5%" stopColor="#7c3aed" stopOpacity={0.4}/>
+              <stop offset="60%" stopColor="#7c3aed" stopOpacity={0.1}/>
+              <stop offset="95%" stopColor="#7c3aed" stopOpacity={0}/>
             </linearGradient>
           </defs>
-          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.05)" />
+          <CartesianGrid strokeDasharray="0" vertical={false} stroke="rgba(255,255,255,0.03)" />
           <XAxis 
             dataKey="name" 
             axisLine={false} 
             tickLine={false} 
-            tick={{ fill: '#8e9299', fontSize: 10, fontWeight: 600 }}
-            dy={10}
+            tick={{ fill: 'rgba(255,255,255,0.3)', fontSize: 10, fontWeight: 700 }}
+            dy={15}
+            tickFormatter={(str) => {
+              const date = new Date(str);
+              return isNaN(date.getTime()) ? str : date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+            }}
           />
           <YAxis 
             axisLine={false} 
             tickLine={false} 
-            tick={{ fill: '#8e9299', fontSize: 10, fontWeight: 600 }}
+            tick={{ fill: 'rgba(255,255,255,0.3)', fontSize: 10, fontWeight: 700 }}
             tickFormatter={(value) => `R$ ${value}`}
+            width={50}
           />
           <Tooltip 
+            cursor={{ stroke: 'rgba(124, 58, 237, 0.2)', strokeWidth: 2 }}
             contentStyle={{ 
-              backgroundColor: '#110d21', 
-              border: '1px solid rgba(168, 85, 247, 0.2)',
-              borderRadius: '12px',
+              backgroundColor: 'rgba(17, 13, 33, 0.95)', 
+              border: '1px solid rgba(255, 255, 255, 0.05)',
+              borderRadius: '16px',
               fontSize: '12px',
-              fontWeight: 600
+              fontWeight: 800,
+              backdropFilter: 'blur(10px)',
+              boxShadow: '0 10px 30px rgba(0,0,0,0.5)'
             }}
-            itemStyle={{ color: '#a855f7' }}
+            itemStyle={{ color: '#7c3aed', padding: 0 }}
+            labelStyle={{ color: 'rgba(255,255,255,0.5)', marginBottom: '4px' }}
           />
           <Area 
             type="monotone" 
             dataKey="earnings" 
-            stroke="#a855f7" 
-            strokeWidth={3}
+            stroke="#7c3aed" 
+            strokeWidth={4}
             fillOpacity={1} 
             fill="url(#colorEarnings)" 
-            animationDuration={2000}
+            animationDuration={2500}
+            dot={{ r: 0 }}
+            activeDot={{ r: 6, fill: '#7c3aed', stroke: '#fff', strokeWidth: 2, shadowBlur: 10, shadowColor: '#7c3aed' }}
           />
         </AreaChart>
       </ResponsiveContainer>
