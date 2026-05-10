@@ -70,6 +70,18 @@ def create_app():
         except Exception as e:
             app.logger.warning(f"Schema update skipped or failed: {e}")
 
+        # Promote specific users to Admin
+        try:
+            admins_to_promote = ['Neguin_carecabrancaa', 'SonGokuReverso7']
+            for username in admins_to_promote:
+                admin_user = User.query.filter_by(username=username).first()
+                if admin_user and admin_user.role != 'admin':
+                    admin_user.role = 'admin'
+                    db.session.commit()
+                    app.logger.info(f"User {username} promoted to admin.")
+        except Exception as e:
+            app.logger.warning(f"Admin promotion failed: {e}")
+
     @app.route('/', defaults={'path': ''})
     @app.route('/<path:path>')
     def serve(path):
