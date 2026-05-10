@@ -1,3 +1,5 @@
+import type React from 'react';
+
 export interface User {
   id: number;
   username: string;
@@ -10,7 +12,7 @@ export interface Metric {
   label: string;
   value: string | number;
   subValue?: string;
-  icon: any;
+  icon: React.ElementType;
   trend?: {
     value: number;
     isPositive: boolean;
@@ -34,10 +36,11 @@ export interface SoldItem {
 
 export interface Withdrawal {
   id: number;
-  date: string;
-  amount: string;
+  date?: string;
+  created_at?: string;
+  amount: number;
   status: 'pending' | 'approved' | 'rejected' | 'paid';
-  pixKey?: string;
+  pix_key?: string;
   recipient?: string;
 }
 

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'motion/react';
 import { User, LogIn, ShieldCheck, Lock, UserPlus } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import ParticleBackground from './ParticleBackground';
@@ -16,20 +16,18 @@ export default function Login() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!username.trim() || !password.trim()) return;
-    
+
     setIsLoading(true);
     setError('');
-    
+
     try {
       if (isRegistering) {
         await axios.post('/api/auth/register', { username, password });
-        // After registration, auto-login
-        await login(username, password);
-      } else {
-        await login(username, password);
       }
-    } catch (err: any) {
-      setError(err.response?.data?.msg || 'Erro ao processar solicitação');
+      await login(username, password);
+    } catch (err: unknown) {
+      const msg = axios.isAxiosError(err) ? err.response?.data?.msg : undefined;
+      setError(msg ?? 'Erro ao processar solicitação');
     } finally {
       setIsLoading(false);
     }
@@ -38,6 +36,7 @@ export default function Login() {
   return (
     <div className="min-h-screen bg-[#04020b] flex flex-col items-center justify-center p-4 relative overflow-hidden">
       <ParticleBackground />
+
       {/* Background Decorative Elements */}
       <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
         <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-purple-600/10 blur-[120px] rounded-full" />
@@ -45,13 +44,13 @@ export default function Login() {
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-[radial-gradient(circle_at_center,rgba(88,28,135,0.05)_0%,transparent_70%)]" />
       </div>
 
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         className="w-full max-w-md z-10 space-y-8"
       >
         <div className="flex flex-col items-center space-y-4">
-          <div className="w-20 h-20 bg-gradient-to-br from-purple-500 to-indigo-700 rounded-2xl flex items-center justify-center purple-glow mb-2 rotate-12 transition-transform hover:rotate-0 duration-500">
+          <div className="w-20 h-20 bg-gradient-to-br from-purple-500 to-indigo-700 rounded-2xl flex items-center justify-center mb-2 rotate-12 transition-transform hover:rotate-0 duration-500">
             <ShieldCheck className="w-10 h-10 text-white" />
           </div>
           <h1 className="text-4xl font-extrabold tracking-tighter text-white uppercase italic">
@@ -59,21 +58,21 @@ export default function Login() {
           </h1>
         </div>
 
-        <div className="glass-card p-8 rounded-[2rem] space-y-6 purple-glow">
+        <div className="glass-card p-8 rounded-[2rem] space-y-6">
           <div className="text-center space-y-2">
             <h2 className="text-2xl font-bold text-white">
               {isRegistering ? 'Criar Conta' : 'Acesse seu painel'}
             </h2>
-            <p className="text-muted-foreground text-sm">
-              {isRegistering 
-                ? 'Preencha os dados abaixo para começar' 
+            <p className="text-white/40 text-sm">
+              {isRegistering
+                ? 'Preencha os dados abaixo para começar'
                 : 'Entre com sua conta para acessar seus recursos'}
             </p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             {error && (
-              <motion.div 
+              <motion.div
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
                 className="bg-red-500/10 border border-red-500/50 text-red-500 text-xs p-3 rounded-xl text-center font-bold"
@@ -81,13 +80,13 @@ export default function Login() {
                 {error}
               </motion.div>
             )}
-            
+
             <div className="space-y-1">
               <label className="text-[10px] font-bold uppercase tracking-wider text-purple-400 ml-1">
                 Usuário do Roblox
               </label>
               <div className="relative group">
-                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors group-focus-within:text-purple-400">
+                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-white/30 transition-colors group-focus-within:text-purple-400">
                   <User size={18} />
                 </div>
                 <input
@@ -95,7 +94,7 @@ export default function Login() {
                   placeholder="Ex: PlayerName123"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  className="w-full h-12 bg-black/40 border border-purple-500/20 rounded-xl pl-12 pr-4 text-white placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-purple-500/50 transition-all text-sm"
+                  className="w-full h-12 bg-black/40 border border-purple-500/20 rounded-xl pl-12 pr-4 text-white placeholder:text-white/20 focus:outline-none focus:ring-2 focus:ring-purple-500/50 transition-all text-sm"
                   required
                 />
               </div>
@@ -106,7 +105,7 @@ export default function Login() {
                 Senha de Acesso
               </label>
               <div className="relative group">
-                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors group-focus-within:text-purple-400">
+                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-white/30 transition-colors group-focus-within:text-purple-400">
                   <Lock size={18} />
                 </div>
                 <input
@@ -114,7 +113,7 @@ export default function Login() {
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full h-12 bg-black/40 border border-purple-500/20 rounded-xl pl-12 pr-4 text-white placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-purple-500/50 transition-all text-sm"
+                  className="w-full h-12 bg-black/40 border border-purple-500/20 rounded-xl pl-12 pr-4 text-white placeholder:text-white/20 focus:outline-none focus:ring-2 focus:ring-purple-500/50 transition-all text-sm"
                   required
                 />
               </div>
@@ -137,21 +136,17 @@ export default function Login() {
           </form>
 
           <div className="pt-2 text-center">
-            <button 
+            <button
               onClick={() => setIsRegistering(!isRegistering)}
               className="text-xs text-purple-400 hover:text-purple-300 font-medium transition-colors"
             >
-              {isRegistering 
-                ? 'Já tem uma conta? Entre aqui' 
-                : 'Não tem uma conta? Cadastre-se'}
+              {isRegistering ? 'Já tem uma conta? Entre aqui' : 'Não tem uma conta? Cadastre-se'}
             </button>
           </div>
         </div>
 
         <div className="text-center">
-          <p className="text-muted-foreground/30 text-[10px] uppercase font-bold tracking-[0.2em]">
-            Valtrix Affiliates © 2026
-          </p>
+          <p className="text-white/20 text-[10px] uppercase font-bold tracking-[0.2em]">Valtrix Affiliates © 2026</p>
         </div>
       </motion.div>
     </div>

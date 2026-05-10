@@ -176,9 +176,10 @@ def get_withdrawals():
     
     return jsonify([{
         "id": w.id,
-        "amount": f"R$ {w.amount:,.2f}".replace('.', ','),
+        "amount": float(w.amount),
         "status": w.status,
-        "date": w.created_at.strftime('%d de %b').lower()
+        "date": w.created_at.strftime('%d de %b').lower(),
+        "created_at": w.created_at.isoformat()
     } for w in history])
 
 @affiliate_bp.route('/click', methods=['POST'])
