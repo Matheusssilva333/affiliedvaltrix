@@ -43,6 +43,10 @@ def create_app():
     bcrypt.init_app(app)
 
     with app.app_context():
+        # Register models first
+        from .models.user import User
+        from .models.sale import Sale
+        
         # Register blueprints
         from .routes.auth import auth_bp
         from .routes.affiliate import affiliate_bp
@@ -56,34 +60,31 @@ def create_app():
         app.register_blueprint(store_bp, url_prefix='/api/store')
         app.register_blueprint(seo_bp)
 
-        # Create tables and handle schema updates for SQLite
+        # Create tables
         db.create_all()
         
-        # Simple schema update for SQLite (if preference_id is missing)
+        # Schema update for SQLite
         try:
             from sqlalchemy import inspect, text
             inspector = inspect(db.engine)
-            columns = [c['name'] for c in inspector.get_columns('sales')]
-            if 'preference_id' not in columns:
-                with db.engine.connect() as conn:
-                    # SQLite doesn't support adding UNIQUE columns via ALTER TABLE easily
-                    conn.execute(text("ALTER TABLE sales ADD COLUMN preference_id VARCHAR(100)"))
-                    conn.commit()
+            if 'sales' in inspector.get_table_names():
+                columns = [c['name'] for c in inspector.get_columns('sales')]
+                if 'preference_id' not in columns:
+                    with db.engine.connect() as conn:
+                        conn.execute(text("ALTER TABLE sales ADD COLUMN preference_id VARCHAR(100)"))
+                        conn.commit()
         except Exception as e:
-            app.logger.warning(f"Schema update skipped or failed: {e}")
+            app.logger.warning(f"Schema update failed: {e}")
 
-        # Promote specific users to Admin
+        # Promote admins
         try:
-            from .models.user import User
-            admins_to_promote = ['Neguin_carecabrancaa', 'SonGokuReverso7']
-            for username in admins_to_promote:
-                admin_user = User.query.filter_by(username=username).first()
-                if admin_user and admin_user.role != 'admin':
-                    admin_user.role = 'admin'
+            for username in ['Neguin_carecabrancaa', 'SonGokuReverso7']:
+                u = User.query.filter_by(username=username).first()
+                if u and u.role != 'admin':
+                    u.role = 'admin'
                     db.session.commit()
-                    app.logger.info(f"User {username} promoted to admin.")
         except Exception as e:
-            app.logger.warning(f"Admin promotion failed: {e}")
+            app.logger.warning(f"Promotion failed: {e}")
 
     @app.route('/', defaults={'path': ''})
     @app.route('/<path:path>')
