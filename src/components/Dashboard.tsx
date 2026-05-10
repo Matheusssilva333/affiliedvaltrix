@@ -87,6 +87,18 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
         </div>
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-3 px-5 py-2 bg-white/[0.03] rounded-2xl border border-white/5 group hover:border-purple-500/30 transition-all backdrop-blur-xl">
+             {user.role === 'admin' && (
+               <>
+                 <button 
+                   onClick={() => navigate('/admin')}
+                   className="flex items-center gap-2 text-[11px] font-black text-purple-400 hover:text-purple-300 uppercase tracking-widest transition-colors"
+                 >
+                   <ShieldCheck size={14} />
+                   Admin
+                 </button>
+                 <div className="w-px h-4 bg-white/10 mx-2" />
+               </>
+             )}
              <div className="relative">
                 <img src={user.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.username}`} alt="Avatar" className="w-6 h-6 rounded-lg object-cover" />
                 <div className="absolute -bottom-1 -right-1 w-2.5 h-2.5 bg-green-500 border-2 border-[#04020b] rounded-full" />

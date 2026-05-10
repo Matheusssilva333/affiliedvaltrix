@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { ShieldCheck, Users, ShoppingBag, Wallet, Check, X, Search, Filter } from 'lucide-react';
+import { ShieldCheck, Users, ShoppingBag, Wallet, Check, X, Search, Filter, TrendingUp } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import axios from 'axios';
 import { cn } from '../lib/utils';
@@ -22,6 +23,7 @@ interface PendingWithdrawal {
 
 export default function AdminPanel() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [overview, setOverview] = useState<AdminOverview | null>(null);
   const [withdrawals, setWithdrawals] = useState<PendingWithdrawal[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -87,9 +89,18 @@ export default function AdminPanel() {
             <p className="text-white/30 text-[10px] font-black uppercase tracking-widest">Gestão da Plataforma Valtrix</p>
           </div>
         </div>
-        <div className="flex items-center gap-3 bg-white/5 p-2 rounded-2xl border border-white/5">
-           <img src={user.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.username}`} alt="Admin" className="w-8 h-8 rounded-xl" />
-           <span className="text-xs font-bold uppercase tracking-widest pr-4">{user.username}</span>
+        <div className="flex items-center gap-4">
+          <button 
+            onClick={() => navigate('/dashboard')}
+            className="flex items-center gap-2 px-5 py-2.5 bg-white/5 hover:bg-white/10 rounded-2xl border border-white/5 text-[10px] font-black uppercase tracking-widest transition-all"
+          >
+            <TrendingUp size={14} className="text-purple-500" />
+            Dashboard
+          </button>
+          <div className="flex items-center gap-3 bg-white/5 p-2 rounded-2xl border border-white/5">
+             <img src={user.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.username}`} alt="Admin" className="w-8 h-8 rounded-xl" />
+             <span className="text-xs font-bold uppercase tracking-widest pr-4">{user.username}</span>
+          </div>
         </div>
       </header>
 
