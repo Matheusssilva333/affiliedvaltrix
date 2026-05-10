@@ -9,3 +9,11 @@ flask-limiter==3.5.0
 bleach==6.1.0
 cryptography==41.0.5
 bcrypt==4.1.2
+Flask-SQLAlchemy==3.1.1
+Flask-JWT-Extended==4.6.0
+Flask-Migrate==4.0.7
+redis==5.0.1
+Flask-Bcrypt==1.0.1
+pytest==7.4.3
+pytest-flask==1.3.0
+axios

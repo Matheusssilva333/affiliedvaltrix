@@ -1,40 +1,35 @@
 import React, { useState } from 'react';
-import { motion } from 'motion/react';
-import { User, LogIn, ShieldCheck } from 'lucide-react';
-import { cn } from '@/src/lib/utils';
+import { motion, AnimatePresence } from 'framer-motion';
+import { User, LogIn, ShieldCheck, Lock, UserPlus } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
 import ParticleBackground from './ParticleBackground';
+import axios from 'axios';
 
-interface LoginProps {
-  onLogin: (username: string, avatarUrl: string) => void;
-}
-
-export default function Login({ onLogin }: LoginProps) {
+export default function Login() {
+  const [isRegistering, setIsRegistering] = useState(false);
   const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const { login } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!username.trim()) return;
+    if (!username.trim() || !password.trim()) return;
     
     setIsLoading(true);
     setError('');
     
     try {
-      const response = await fetch('/api/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username })
-      });
-      const data = await response.json();
-      
-      if (response.ok && data.success) {
-        onLogin(data.user.username, data.user.avatarUrl);
+      if (isRegistering) {
+        await axios.post('/api/auth/register', { username, password });
+        // After registration, auto-login
+        await login(username, password);
       } else {
-        setError(data.error || 'Erro ao fazer login');
+        await login(username, password);
       }
-    } catch (err) {
-      setError('Erro de conexão');
+    } catch (err: any) {
+      setError(err.response?.data?.msg || 'Erro ao processar solicitação');
     } finally {
       setIsLoading(false);
     }
@@ -55,37 +50,40 @@ export default function Login({ onLogin }: LoginProps) {
         animate={{ opacity: 1, y: 0 }}
         className="w-full max-w-md z-10 space-y-8"
       >
-        {/* Logo Placeholder */}
         <div className="flex flex-col items-center space-y-4">
-          <div className="w-24 h-24 bg-gradient-to-br from-purple-500 to-indigo-700 rounded-3xl flex items-center justify-center purple-glow mb-2 rotate-12">
-            {/* Bull icon would go here - placeholder for now */}
-            <ShieldCheck className="w-12 h-12 text-white" />
+          <div className="w-20 h-20 bg-gradient-to-br from-purple-500 to-indigo-700 rounded-2xl flex items-center justify-center purple-glow mb-2 rotate-12 transition-transform hover:rotate-0 duration-500">
+            <ShieldCheck className="w-10 h-10 text-white" />
           </div>
           <h1 className="text-4xl font-extrabold tracking-tighter text-white uppercase italic">
             Valtrix <span className="text-purple-500">Affiliates</span>
           </h1>
-          <div className="h-px w-12 bg-purple-500/50" />
         </div>
 
         <div className="glass-card p-8 rounded-[2rem] space-y-6 purple-glow">
           <div className="text-center space-y-2">
-            <div className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-purple-500/10 mb-2">
-              <ShieldCheck className="w-5 h-5 text-purple-400" />
-            </div>
-            <h2 className="text-2xl font-bold text-white">Acesse seu painel</h2>
+            <h2 className="text-2xl font-bold text-white">
+              {isRegistering ? 'Criar Conta' : 'Acesse seu painel'}
+            </h2>
             <p className="text-muted-foreground text-sm">
-              Entre com sua conta para acessar seu painel de afiliado.
+              {isRegistering 
+                ? 'Preencha os dados abaixo para começar' 
+                : 'Entre com sua conta para acessar seus recursos'}
             </p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-4">
             {error && (
-              <div className="bg-red-500/10 border border-red-500/50 text-red-500 text-sm p-3 rounded-xl text-center font-bold">
+              <motion.div 
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="bg-red-500/10 border border-red-500/50 text-red-500 text-xs p-3 rounded-xl text-center font-bold"
+              >
                 {error}
-              </div>
+              </motion.div>
             )}
-            <div className="space-y-2">
-              <label htmlFor="username" className="text-xs font-bold uppercase tracking-wider text-purple-400 ml-1">
+            
+            <div className="space-y-1">
+              <label className="text-[10px] font-bold uppercase tracking-wider text-purple-400 ml-1">
                 Usuário do Roblox
               </label>
               <div className="relative group">
@@ -93,43 +91,66 @@ export default function Login({ onLogin }: LoginProps) {
                   <User size={18} />
                 </div>
                 <input
-                  id="username"
                   type="text"
                   placeholder="Ex: PlayerName123"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  className="w-full h-14 bg-black/40 border border-purple-500/20 rounded-2xl pl-12 pr-4 text-white placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 transition-all font-medium"
+                  className="w-full h-12 bg-black/40 border border-purple-500/20 rounded-xl pl-12 pr-4 text-white placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-purple-500/50 transition-all text-sm"
                   required
                 />
               </div>
             </div>
 
+            <div className="space-y-1">
+              <label className="text-[10px] font-bold uppercase tracking-wider text-purple-400 ml-1">
+                Senha de Acesso
+              </label>
+              <div className="relative group">
+                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors group-focus-within:text-purple-400">
+                  <Lock size={18} />
+                </div>
+                <input
+                  type="password"
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full h-12 bg-black/40 border border-purple-500/20 rounded-xl pl-12 pr-4 text-white placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-purple-500/50 transition-all text-sm"
+                  required
+                />
+              </div>
+            </div>
 
             <button
               disabled={isLoading}
               type="submit"
-              className="w-full h-14 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold rounded-2xl flex items-center justify-center gap-2 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed group"
+              className="w-full h-12 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold rounded-xl flex items-center justify-center gap-2 transition-all active:scale-95 disabled:opacity-50 group mt-2"
             >
               {isLoading ? (
-                <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
               ) : (
                 <>
-                  <LogIn size={20} className="transition-transform group-hover:translate-x-1" />
-                  <span>Entrar no sistema</span>
+                  {isRegistering ? <UserPlus size={18} /> : <LogIn size={18} />}
+                  <span>{isRegistering ? 'Cadastrar agora' : 'Entrar no sistema'}</span>
                 </>
               )}
             </button>
           </form>
 
-          <p className="text-center text-xs text-muted-foreground flex items-center justify-center gap-2">
-            <ShieldCheck size={14} className="text-purple-500/50" />
-            Insira seu usuário do Roblox para entrar
-          </p>
+          <div className="pt-2 text-center">
+            <button 
+              onClick={() => setIsRegistering(!isRegistering)}
+              className="text-xs text-purple-400 hover:text-purple-300 font-medium transition-colors"
+            >
+              {isRegistering 
+                ? 'Já tem uma conta? Entre aqui' 
+                : 'Não tem uma conta? Cadastre-se'}
+            </button>
+          </div>
         </div>
 
         <div className="text-center">
           <p className="text-muted-foreground/30 text-[10px] uppercase font-bold tracking-[0.2em]">
-            Valtrix Affiliates © 2025
+            Valtrix Affiliates © 2026
           </p>
         </div>
       </motion.div>

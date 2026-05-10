@@ -1,14 +1,16 @@
 export interface User {
+  id: number;
   username: string;
-  avatarUrl: string;
-  id: string;
+  avatar_url: string;
+  role: string;
+  balance: number;
 }
 
 export interface Metric {
   label: string;
   value: string | number;
   subValue?: string;
-  icon: string;
+  icon: any;
   trend?: {
     value: number;
     isPositive: boolean;
@@ -31,12 +33,12 @@ export interface SoldItem {
 }
 
 export interface Withdrawal {
-  id: string;
+  id: number;
   date: string;
   amount: string;
-  status: 'pending' | 'approved' | 'rejected';
-  pixKey: string;
-  recipient: string;
+  status: 'pending' | 'approved' | 'rejected' | 'paid';
+  pixKey?: string;
+  recipient?: string;
 }
 
 export interface PerformanceData {

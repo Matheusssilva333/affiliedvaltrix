@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from 'motion/react';
+import { motion } from 'framer-motion';
 import { ShoppingBag, Star, ShieldCheck, Zap, ArrowRight, ExternalLink } from 'lucide-react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import ParticleBackground from './ParticleBackground';
+import axios from 'axios';
 
 interface Product {
   id: string;
@@ -12,21 +14,18 @@ interface Product {
   image: string;
 }
 
-interface StoreProps {
-  affiliateCode: string | null;
-  onGoToDashboard: () => void;
-}
-
-export default function Store({ affiliateCode, onGoToDashboard }: StoreProps) {
+export default function Store() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [buyingId, setBuyingId] = useState<string | null>(null);
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const affiliateCode = searchParams.get('ref') || localStorage.getItem('valtrix_ref');
 
   useEffect(() => {
-    fetch('/api/products')
-      .then(r => r.json())
-      .then(data => {
-        setProducts(data);
+    axios.get('/api/store/products')
+      .then(res => {
+        setProducts(res.data);
         setLoading(false);
       })
       .catch(err => {
@@ -38,19 +37,14 @@ export default function Store({ affiliateCode, onGoToDashboard }: StoreProps) {
   const handleBuy = async (product: Product) => {
     setBuyingId(product.id);
     try {
-      const response = await fetch('/api/checkout', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          item_id: product.id,
-          item_name: product.name,
-          item_price: product.price,
-          affiliate_code: affiliateCode || 'admin'
-        })
+      const response = await axios.post('/api/store/checkout', {
+        item_id: product.id,
+        item_name: product.name,
+        item_price: product.price,
+        affiliate_code: affiliateCode
       });
-      const data = await response.json();
-      if (data.init_point) {
-        window.location.href = data.init_point;
+      if (response.data.init_point) {
+        window.location.href = response.data.init_point;
       }
     } catch (err) {
       console.error('Checkout error:', err);
@@ -68,7 +62,7 @@ export default function Store({ affiliateCode, onGoToDashboard }: StoreProps) {
       <nav className="flex items-center justify-between mb-12 z-10 relative bg-white/[0.02] p-4 rounded-3xl border border-white/5 backdrop-blur-md">
         <div className="flex items-center gap-2">
           <div className="w-1.5 h-4 bg-purple-500 rounded-full" />
-          <span className="font-display font-extrabold text-lg tracking-tight text-white italic uppercase">Valtrix <span className="text-purple-500">Store</span></span>
+          <span className="font-extrabold text-lg tracking-tight text-white italic uppercase">Valtrix <span className="text-purple-500">Store</span></span>
         </div>
         <div className="flex items-center gap-4">
           {affiliateCode && (
@@ -78,7 +72,7 @@ export default function Store({ affiliateCode, onGoToDashboard }: StoreProps) {
             </div>
           )}
           <button 
-            onClick={onGoToDashboard}
+            onClick={() => navigate('/dashboard')}
             className="flex items-center gap-2 px-5 py-2.5 bg-purple-600 hover:bg-purple-500 rounded-xl text-xs font-bold transition-all shadow-lg shadow-purple-500/20 active:scale-95"
           >
             Área do Afiliado
@@ -101,7 +95,7 @@ export default function Store({ affiliateCode, onGoToDashboard }: StoreProps) {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="text-5xl md:text-7xl font-display font-black tracking-tighter mb-6 italic uppercase"
+          className="text-5xl md:text-7xl font-black tracking-tighter mb-6 italic uppercase"
         >
           Seus itens favoritos <br />
           <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-indigo-600">mais baratos.</span>
@@ -204,7 +198,7 @@ export default function Store({ affiliateCode, onGoToDashboard }: StoreProps) {
 
       <footer className="text-center py-12 border-t border-white/5 relative z-10">
         <p className="text-muted-foreground/30 text-[10px] uppercase font-bold tracking-[0.5em]">
-          Valtrix Platform &copy; 2025 • Conectado à <span className="text-white">API do Roblox</span>
+          Valtrix Platform &copy; 2026 • Conectado à <span className="text-white">API do Roblox</span>
         </p>
       </footer>
     </div>
