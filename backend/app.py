@@ -55,6 +55,21 @@ def create_app():
         app.register_blueprint(store_bp, url_prefix='/api/store')
         app.register_blueprint(seo_bp)
 
+        # Create tables and handle schema updates for SQLite
+        db.create_all()
+        
+        # Simple schema update for SQLite (if preference_id is missing)
+        try:
+            from sqlalchemy import inspect, text
+            inspector = inspect(db.engine)
+            columns = [c['name'] for c in inspector.get_columns('sales')]
+            if 'preference_id' not in columns:
+                with db.engine.connect() as conn:
+                    conn.execute(text("ALTER TABLE sales ADD COLUMN preference_id VARCHAR(100) UNIQUE"))
+                    conn.commit()
+        except Exception as e:
+            app.logger.warning(f"Schema update skipped or failed: {e}")
+
     @app.route('/', defaults={'path': ''})
     @app.route('/<path:path>')
     def serve(path):
