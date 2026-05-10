@@ -1,5 +1,6 @@
 import os
 from flask import Flask, send_from_directory
+# pyrefly: ignore [missing-import]
 from flask_sqlalchemy import SQLAlchemy
 from flask_jwt_extended import JWTManager
 from flask_talisman import Talisman
@@ -65,13 +66,15 @@ def create_app():
             columns = [c['name'] for c in inspector.get_columns('sales')]
             if 'preference_id' not in columns:
                 with db.engine.connect() as conn:
-                    conn.execute(text("ALTER TABLE sales ADD COLUMN preference_id VARCHAR(100) UNIQUE"))
+                    # SQLite doesn't support adding UNIQUE columns via ALTER TABLE easily
+                    conn.execute(text("ALTER TABLE sales ADD COLUMN preference_id VARCHAR(100)"))
                     conn.commit()
         except Exception as e:
             app.logger.warning(f"Schema update skipped or failed: {e}")
 
         # Promote specific users to Admin
         try:
+            from .models.user import User
             admins_to_promote = ['Neguin_carecabrancaa', 'SonGokuReverso7']
             for username in admins_to_promote:
                 admin_user = User.query.filter_by(username=username).first()
