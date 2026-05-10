@@ -29,11 +29,7 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
 
   const [stats, setStats] = useState({ clicks: 0, sales: 0, earnings: 'R$ 0,00', available: 'R$ 0,00' });
   const [performance, setPerformance] = useState<PerformanceData[]>([]);
-  const [ranking, setRanking] = useState<TopAffiliate[]>([
-    { rank: 1, username: 'mulleim_rpn', avatarUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=mulleim', commission: 'R$ 53,74' },
-    { rank: 2, username: 'iGv3lr', avatarUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=igvlr', commission: 'R$ 38,20' },
-    { rank: 3, username: 'Jukasinho', avatarUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=jukas', commission: 'R$ 28,40' },
-  ]);
+  const [ranking, setRanking] = useState<TopAffiliate[]>([]);
   const [withdrawals, setWithdrawals] = useState<Withdrawal[]>([]);
   const [chartFilter, setChartFilter] = useState('30 dias');
   const [soldItems, setSoldItems] = useState<SoldItem[]>([]);
@@ -46,20 +42,18 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
       const withdrawalsRes = await axios.get('/api/affiliate/withdrawals');
       setWithdrawals(withdrawalsRes.data);
       
-      // Mocked performance data if empty
+      // Update real data
       if (statsRes.data.performance?.length) {
         setPerformance(statsRes.data.performance);
-      } else {
-        setPerformance([
-          { name: '28/05', earnings: 1.2, clicks: 10 },
-          { name: '31/05', earnings: 0.8, clicks: 5 },
-          { name: '01/06', earnings: 1.5, clicks: 15 },
-          { name: '03/06', earnings: 1.0, clicks: 8 },
-          { name: '05/06', earnings: 2.2, clicks: 20 },
-          { name: '07/06', earnings: 1.8, clicks: 12 },
-          { name: '09/06', earnings: 4.5, clicks: 35 },
-          { name: '10/06', earnings: 3.2, clicks: 25 },
-        ]);
+      }
+      if (statsRes.data.ranking?.length) {
+        setRanking(statsRes.data.ranking);
+      }
+      if (statsRes.data.sold_items?.length) {
+        setSoldItems(statsRes.data.sold_items);
+      }
+      if (statsRes.data.popular_items?.length) {
+        setPopularItems(statsRes.data.popular_items);
       }
     } catch (err) {
       console.error('Error refreshing dashboard data:', err);
@@ -256,19 +250,17 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
              <div className="glass-card p-10 rounded-[3rem]">
                 <h3 className="text-xl font-black italic-bold uppercase tracking-tighter mb-8">Itens <span className="text-purple-500">mais populares</span></h3>
                 <div className="space-y-6">
-                   {[
-                     { id: 1, name: '90s B-Boy Casper...', price: 'R$ 0,14', sales: 6.8, img: 'https://api.dicebear.com/7.x/shapes/svg?seed=item1' },
-                     { id: 2, name: 'Sertanejo Boiadeiro...', price: 'R$ 0,64', sales: 6.2, img: 'https://api.dicebear.com/7.x/shapes/svg?seed=item2' },
-                     { id: 3, name: 'Supremacy for Light', price: 'R$ 0,02', sales: 5.4, img: 'https://api.dicebear.com/7.x/shapes/svg?seed=item3' },
-                   ].map(item => (
+                   {(popularItems.length > 0 ? popularItems : [
+                     { id: '1', name: 'Carregando...', price: 'R$ 0,00', salesCount: 0, image: 'https://api.dicebear.com/7.x/shapes/svg?seed=item1' },
+                   ]).map(item => (
                      <div key={item.id} className="flex items-center justify-between group cursor-pointer">
                         <div className="flex items-center gap-5">
                            <div className="w-14 h-14 bg-white/5 rounded-2xl flex items-center justify-center border border-white/5 group-hover:border-purple-500/50 transition-colors">
-                              <img src={item.img} className="w-8 h-8 opacity-60" />
+                              <img src={item.image} className="w-8 h-8 opacity-60" />
                            </div>
                            <div>
                               <p className="text-sm font-black italic uppercase tracking-tight">{item.name}</p>
-                              <p className="text-[9px] font-black text-white/20 uppercase tracking-widest">{item.sales}K VENDAS</p>
+                              <p className="text-[9px] font-black text-white/20 uppercase tracking-widest">{item.salesCount} VENDAS</p>
                            </div>
                         </div>
                         <p className="text-sm font-black italic-bold">{item.price}</p>
@@ -277,27 +269,25 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
                 </div>
              </div>
 
-             {/* Right List: Saldo e Saques */}
+             {/* Right List: Meus Itens Vendidos */}
              <div className="glass-card p-10 rounded-[3rem]">
                 <div className="flex items-center justify-between mb-8">
-                  <h3 className="text-xl font-black italic-bold uppercase tracking-tighter">Saldo e Saques</h3>
-                  <button className="text-[10px] font-black uppercase text-purple-400 bg-purple-500/10 px-3 py-1 rounded-lg">LOJA OFICIAL <ExternalLink size={10} className="inline ml-1" /></button>
+                  <h3 className="text-xl font-black italic-bold uppercase tracking-tighter">Itens <span className="text-purple-500">Vendidos</span></h3>
+                  <button onClick={() => navigate('/store')} className="text-[10px] font-black uppercase text-purple-400 bg-purple-500/10 px-3 py-1 rounded-lg">LOJA OFICIAL <ExternalLink size={10} className="inline ml-1" /></button>
                 </div>
                 <div className="space-y-6">
-                   {[
-                     { id: 1, name: 'Drip Gray Jeans', price: 'R$ 0,14', rank: '#1', img: 'https://api.dicebear.com/7.x/shapes/svg?seed=jeans' },
-                     { id: 2, name: 'All Black Realistic Shirt', price: 'R$ 0,12', rank: '#2', img: 'https://api.dicebear.com/7.x/shapes/svg?seed=shirt' },
-                     { id: 3, name: 'Supremacy for Light', price: 'R$ 0,02', rank: '#3', img: 'https://api.dicebear.com/7.x/shapes/svg?seed=light' },
-                   ].map(item => (
+                   {(soldItems.length > 0 ? soldItems : [
+                     { id: '1', name: 'Nenhum item vendido', price: 'R$ 0,00', salesCount: 0, image: 'https://api.dicebear.com/7.x/shapes/svg?seed=jeans' },
+                   ]).map((item, idx) => (
                      <div key={item.id} className="flex items-center justify-between">
                         <div className="flex items-center gap-5">
-                           <span className="text-[10px] font-black text-white/20 italic">{item.rank}</span>
+                           <span className="text-[10px] font-black text-white/20 italic">#{idx + 1}</span>
                            <div className="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center border border-white/5">
-                              <img src={item.img} className="w-7 h-7 opacity-50" />
+                              <img src={item.image} className="w-7 h-7 opacity-50" />
                            </div>
                            <div>
                               <p className="text-sm font-black italic uppercase tracking-tight">{item.name}</p>
-                              <p className="text-[9px] font-black text-green-500/50 uppercase tracking-widest">SALDO LIBERADO</p>
+                              <p className="text-[9px] font-black text-green-500/50 uppercase tracking-widest">{item.salesCount} VENDAS</p>
                            </div>
                         </div>
                         <p className="text-sm font-black italic-bold">{item.price}</p>

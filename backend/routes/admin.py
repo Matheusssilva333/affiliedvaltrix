@@ -69,3 +69,32 @@ def approve_withdrawal(req_id):
     except Exception as e:
         db.session.rollback()
         return jsonify({"msg": "Internal error", "error": str(e)}), 500
+
+@admin_bp.route('/withdrawals/<int:req_id>/reject', methods=['POST'])
+@jwt_required()
+def reject_withdrawal(req_id):
+    check_admin(get_jwt_identity())
+    req = WithdrawRequest.query.get_or_404(req_id)
+    
+    if req.status != 'pending':
+        return jsonify({"msg": "Request already processed"}), 400
+        
+    try:
+        # Return balance to user
+        user = req.user
+        user.balance += req.amount
+        
+        req.status = 'rejected'
+        req.processed_at = datetime.datetime.now()
+        
+        # Also mark the transaction as rejected
+        from ..models.transaction import Transaction
+        tx = Transaction.query.filter_by(user_id=user.id, amount=-req.amount, type='withdrawal', status='pending').first()
+        if tx:
+            tx.status = 'rejected'
+
+        db.session.commit()
+        return jsonify({"msg": "Withdrawal rejected and balance returned"})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"msg": "Internal error", "error": str(e)}), 500

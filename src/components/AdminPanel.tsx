@@ -57,6 +57,19 @@ export default function AdminPanel() {
     }
   };
 
+  const handleReject = async (id: number) => {
+    if (!confirm('Deseja realmente rejeitar este saque? O saldo voltará para o usuário.')) return;
+    setProcessingId(id);
+    try {
+      await axios.post(`/api/admin/withdrawals/${id}/reject`);
+      await fetchData();
+    } catch (err) {
+      alert('Erro ao rejeitar saque');
+    } finally {
+      setProcessingId(null);
+    }
+  };
+
   if (user?.role !== 'admin') {
     return <div className="text-white p-20 text-center font-bold">Acesso Negado</div>;
   }
@@ -176,8 +189,12 @@ export default function AdminPanel() {
                       >
                         {processingId === w.id ? <div className="w-4 h-4 border-2 border-green-500/30 border-t-green-500 rounded-full animate-spin" /> : <Check size={18} />}
                       </button>
-                      <button className="p-2 bg-red-500/10 hover:bg-red-500/20 text-red-500 rounded-xl transition-all">
-                        <X size={18} />
+                      <button 
+                        onClick={() => handleReject(w.id)}
+                        disabled={processingId === w.id}
+                        className="p-2 bg-red-500/10 hover:bg-red-500/20 text-red-500 rounded-xl transition-all disabled:opacity-50"
+                      >
+                        {processingId === w.id ? <div className="w-4 h-4 border-2 border-red-500/30 border-t-red-500 rounded-full animate-spin" /> : <X size={18} />}
                       </button>
                     </div>
                   </td>
