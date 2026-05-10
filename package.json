@@ -2,10 +2,10 @@
   "name": "valtrix-clientes",
   "version": "1.0.0",
   "description": "Valtrix Clientes Store",
-  "main": "src/app.py",
+  "main": "backend/app.py",
   "scripts": {
-    "start": "python src/app.py",
-    "dev": "python src/app.py",
+    "start": "gunicorn backend.app:app",
+    "dev": "python -m backend.app",
     "build": "vite build"
   },
   "dependencies": {

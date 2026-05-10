@@ -4,7 +4,7 @@ services:
     env: python
     plan: free
     buildCommand: "npm install && npm run build && pip install -r requirements.txt"
-    startCommand: "gunicorn src.app:app"
+    startCommand: "gunicorn backend.app:app"
     envVars:
       - key: PORT
         value: 10000

@@ -23,7 +23,7 @@ interface DashboardProps {
 export default function Dashboard({ user, onLogout }: DashboardProps) {
   const [isWithdrawalModalOpen, setIsWithdrawalModalOpen] = useState(false);
   const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
-  const affiliateLink = `${baseUrl.replace('http://', '').replace('https://', '')}/ref=${user?.username}`;
+  const affiliateLink = `${baseUrl.replace('http://', '').replace('https://', '')}/?ref=${user?.username}`;
   const [isCopied, setIsCopied] = useState(false);
   const navigate = useNavigate();
 
