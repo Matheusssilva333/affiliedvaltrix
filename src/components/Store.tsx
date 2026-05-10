@@ -15,6 +15,7 @@ interface Product {
 }
 
 export default function Store() {
+  const { user } = useAuth();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [buyingId, setBuyingId] = useState<string | null>(null);
@@ -65,6 +66,15 @@ export default function Store() {
           <span className="font-extrabold text-lg tracking-tight text-white italic uppercase">Valtrix <span className="text-purple-500">Store</span></span>
         </div>
         <div className="flex items-center gap-4">
+          {user?.role === 'admin' && (
+             <button 
+               onClick={() => navigate('/admin')}
+               className="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 rounded-xl text-[10px] font-bold text-purple-400 transition-all border border-white/5"
+             >
+               <ShieldCheck size={14} />
+               Painel Admin
+             </button>
+          )}
           {affiliateCode && (
             <div className="hidden md:flex items-center gap-2 px-3 py-1 bg-green-500/10 rounded-full border border-green-500/20">
               <ShieldCheck size={12} className="text-green-400" />
