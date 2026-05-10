@@ -15,6 +15,8 @@ affiliate_bp = Blueprint('affiliate', __name__)
 def get_stats():
     user_id = get_jwt_identity()
     user = User.query.get(user_id)
+    if not user:
+        return jsonify({"msg": "User not found"}), 404
     
     from ..models.sale import Sale
     from ..models.click import Click

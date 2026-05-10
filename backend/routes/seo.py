@@ -8,30 +8,31 @@ HTML_TEMPLATE = """
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>{{ title }}</title>
-    <meta name="description" content="{{ description }}">
+    <title>{{ title | e }}</title>
+    <meta name="description" content="{{ description | e }}">
     
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">
-    <meta property="og:url" content="{{ url }}">
-    <meta property="og:title" content="{{ title }}">
-    <meta property="og:description" content="{{ description }}">
-    <meta property="og:image" content="{{ image }}">
+    <meta property="og:url" content="{{ url | e }}">
+    <meta property="og:title" content="{{ title | e }}">
+    <meta property="og:description" content="{{ description | e }}">
+    <meta property="og:image" content="{{ image | e }}">
 
     <!-- Twitter -->
     <meta property="twitter:card" content="summary_large_image">
-    <meta property="twitter:url" content="{{ url }}">
-    <meta property="twitter:title" content="{{ title }}">
-    <meta property="twitter:description" content="{{ description }}">
-    <meta property="twitter:image" content="{{ image }}">
+    <meta property="twitter:url" content="{{ url | e }}">
+    <meta property="twitter:title" content="{{ title | e }}">
+    <meta property="twitter:description" content="{{ description | e }}">
+    <meta property="twitter:image" content="{{ image | e }}">
 
     <script>
-        // Redirect to the actual store page
-        window.location.href = "/store?ref={{ username }}";
+        // Safely encode the username for URL parameter
+        var safeUsername = {{ username | tojson }};
+        window.location.href = "/store?ref=" + encodeURIComponent(safeUsername);
     </script>
 </head>
 <body>
-    <h1>Redirecionando para a loja de {{ username }}...</h1>
+    <h1>Redirecionando para a loja de {{ username | e }}...</h1>
 </body>
 </html>
 """
