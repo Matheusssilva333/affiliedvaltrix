@@ -21,7 +21,7 @@ def create_app():
     base_dir = os.path.abspath(os.path.dirname(__file__))
     static_folder = os.path.join(base_dir, '..', 'dist')
     
-    app = Flask(__name__, static_folder=static_folder)
+    app = Flask(__name__, static_folder=static_folder, static_url_path='')
     app.config.from_object('backend.config.Config')
 
     # Security headers
