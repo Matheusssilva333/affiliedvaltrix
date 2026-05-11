@@ -3,8 +3,14 @@ from datetime import timedelta
 
 class Config:
     SECRET_KEY = os.environ.get('SECRET_KEY', 'dev-key-valtrix-please-change-2026')
+    # For Supabase: postgresql://user:password@host:5432/postgres
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL', 'sqlite:///valtrix.db')
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+    SQLALCHEMY_ENGINE_OPTIONS = {
+        'pool_size': 10,
+        'pool_recycle': 3600,
+        'pool_pre_ping': True,  # Verify connection before using
+    }
 
     JWT_SECRET_KEY = os.environ.get('JWT_SECRET_KEY', 'dev-jwt-key-please-change-to-a-strong-secret-2026')
     JWT_ACCESS_TOKEN_EXPIRES = timedelta(minutes=int(os.environ.get('JWT_ACCESS_TOKEN_EXPIRES', 15)))
