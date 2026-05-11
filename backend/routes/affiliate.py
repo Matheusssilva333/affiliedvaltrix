@@ -3,8 +3,7 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 from ..models.user import User
 from ..models.transaction import Transaction
 from ..models.withdraw_request import WithdrawRequest
-from ..app import db
-from ..services.roblox import get_roblox_item_thumbnails
+from ..app import db, limiter
 from ..utils.validators import sanitize_input, validate_pix_key
 import datetime
 
@@ -121,30 +120,33 @@ def get_stats():
 
 @affiliate_bp.route('/withdraw', methods=['POST'])
 @jwt_required()
+@limiter.limit('10 per minute')
 def request_withdrawal():
     user_id = get_jwt_identity()
     user = User.query.get(user_id)
-    data = request.json
-    
+    if not user:
+        return jsonify({"msg": "User not found"}), 404
+
+    data = request.json or {}
     amount = float(data.get('amount', 0))
     pix_key = sanitize_input(data.get('pix_key'))
     recipient = sanitize_input(data.get('recipient'))
-    
+
     if amount <= 0 or amount > user.balance:
         return jsonify({"msg": "Invalid amount or insufficient balance"}), 400
-        
     if not validate_pix_key(pix_key):
         return jsonify({"msg": "Invalid PIX key"}), 400
-        
-    try:
-        # Atomic transaction with locking
-        user = User.query.filter_by(id=user_id).with_for_update().first()
-        
-        if user.balance < amount:
-             return jsonify({"msg": "Insufficient balance"}), 400
 
-        user.balance -= amount
-        
+    try:
+        locked_user = User.query.filter_by(id=user_id).with_for_update().first()
+        if not locked_user:
+            return jsonify({"msg": "User not found"}), 404
+
+        if locked_user.balance < amount:
+            return jsonify({"msg": "Insufficient balance"}), 400
+
+        locked_user.balance -= amount
+
         req = WithdrawRequest(
             user_id=user_id,
             amount=amount,
@@ -152,7 +154,7 @@ def request_withdrawal():
             recipient_name=recipient,
             status='pending'
         )
-        
+
         tx = Transaction(
             user_id=user_id,
             amount=-amount,
@@ -160,12 +162,12 @@ def request_withdrawal():
             description=f'Withdrawal to PIX: {pix_key}',
             status='pending'
         )
-        
+
         db.session.add(req)
         db.session.add(tx)
         db.session.commit()
-        
-        return jsonify({"msg": "Withdrawal request submitted", "new_balance": user.balance}), 201
+
+        return jsonify({"msg": "Withdrawal request submitted", "new_balance": locked_user.balance}), 201
     except Exception as e:
         db.session.rollback()
         return jsonify({"msg": "Failed to process withdrawal", "error": str(e)}), 500

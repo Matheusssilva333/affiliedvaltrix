@@ -6,7 +6,7 @@ import Login from './components/Login';
 import Dashboard from './components/Dashboard';
 import Store from './components/Store';
 import AdminPanel from './components/AdminPanel';
-import axios from 'axios';
+import { api } from './lib/api';
 
 // Component for protected routes
 const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
@@ -32,7 +32,7 @@ export default function App() {
       localStorage.setItem('valtrix_ref', ref);
       
       // Register click in backend
-      axios.post('/api/affiliate/click', { code: ref })
+      api.post('/api/affiliate/click', { code: ref })
         .catch(err => console.error('Error tracking click:', err));
     }
   }, []);

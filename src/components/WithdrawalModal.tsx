@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { X, Wallet, History, Info } from 'lucide-react';
+import axios from 'axios';
 import { cn } from '../lib/utils';
 import { Withdrawal } from '../types';
-import axios from 'axios';
+import { api } from '../lib/api';
 
 interface WithdrawalModalProps {
   isOpen: boolean;
@@ -54,7 +55,7 @@ export default function WithdrawalModal({
     setIsLoading(true);
     setError('');
     try {
-      await axios.post('/api/affiliate/withdraw', {
+      await api.post('/api/affiliate/withdraw', {
         amount: parseFloat(amount),
         pix_key: pixKey,
         recipient,

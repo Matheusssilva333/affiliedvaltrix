@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { motion } from 'motion/react';
 import { User, LogIn, ShieldCheck, Lock, UserPlus } from 'lucide-react';
+import axios from 'axios';
 import { useAuth } from '../contexts/AuthContext';
 import ParticleBackground from './ParticleBackground';
-import axios from 'axios';
+import { api } from '../lib/api';
 
 export default function Login() {
   const [isRegistering, setIsRegistering] = useState(false);
@@ -22,7 +23,7 @@ export default function Login() {
 
     try {
       if (isRegistering) {
-        await axios.post('/api/auth/register', { username, password });
+        await api.post('/api/auth/register', { username, password });
       }
       await login(username, password);
     } catch (err: unknown) {

@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import axios from 'axios';
+import { api } from '../lib/api';
 
 import { User } from '../types';
 
@@ -20,7 +20,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const refreshUser = async () => {
     try {
-      const response = await axios.get('/api/auth/me');
+      const response = await api.get('/api/auth/me');
       setUser(response.data);
     } catch (error) {
       setUser(null);
@@ -34,12 +34,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const login = async (username: string, password: string) => {
-    await axios.post('/api/auth/login', { username, password });
+    await api.post('/api/auth/login', { username, password });
     await refreshUser();
   };
 
   const logout = async () => {
-    await axios.post('/api/auth/logout');
+    await api.post('/api/auth/logout');
     setUser(null);
   };
 

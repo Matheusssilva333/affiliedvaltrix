@@ -10,7 +10,7 @@ import PerformanceChart from './PerformanceChart';
 import WithdrawalModal from './WithdrawalModal';
 import ParticleBackground from './ParticleBackground';
 import { PerformanceData, TopAffiliate, SoldItem, Withdrawal, User } from '../types';
-import axios from 'axios';
+import { api } from '../lib/api';
 import DashboardNavbar from './dashboard/DashboardNavbar';
 import DashboardHeader from './dashboard/DashboardHeader';
 import RankingWidget from './dashboard/RankingWidget';
@@ -46,8 +46,8 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
   const refreshData = async () => {
     try {
       const [statsRes, withdrawalsRes] = await Promise.all([
-        axios.get('/api/affiliate/stats'),
-        axios.get('/api/affiliate/withdrawals'),
+        api.get('/api/affiliate/stats'),
+        api.get('/api/affiliate/withdrawals'),
       ]);
 
       const { stats: s, performance: p, ranking: r, sold_items: si, popular_items: pi } = statsRes.data;

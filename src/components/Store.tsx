@@ -4,7 +4,7 @@ import { ShoppingBag, Star, ShieldCheck, Zap, ArrowRight } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import ParticleBackground from './ParticleBackground';
 import { useAuth } from '../contexts/AuthContext';
-import axios from 'axios';
+import { api } from '../lib/api';
 
 interface Product {
   id: string;
@@ -25,7 +25,7 @@ export default function Store() {
   const affiliateCode = searchParams.get('ref') || localStorage.getItem('valtrix_ref');
 
   useEffect(() => {
-    axios
+    api
       .get('/api/store/products')
       .then((res) => {
         setProducts(res.data);
@@ -40,7 +40,7 @@ export default function Store() {
   const handleBuy = async (product: Product) => {
     setBuyingId(product.id);
     try {
-      const response = await axios.post('/api/store/checkout', {
+      const response = await api.post('/api/store/checkout', {
         item_id: product.id,
         item_name: product.name,
         item_price: product.price,

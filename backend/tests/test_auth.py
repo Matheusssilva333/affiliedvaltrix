@@ -22,8 +22,8 @@ def test_login(client):
     })
     assert response.status_code == 200
     assert b"Login successful" in response.data
-    # Check if cookies are set
-    assert 'access_token_cookie' in [c.name for c in client.cookie_jar]
+    cookies = response.headers.get_all('Set-Cookie')
+    assert any('access_token_cookie' in cookie for cookie in cookies)
 
 def test_me_protected(client):
     response = client.get('/api/auth/me')

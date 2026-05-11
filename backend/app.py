@@ -6,6 +6,8 @@ from flask_talisman import Talisman
 from flask_migrate import Migrate
 from flask_cors import CORS
 from flask_bcrypt import Bcrypt
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 from .utils.logger import setup_logger
 
 setup_logger()
@@ -14,6 +16,7 @@ db = SQLAlchemy()
 jwt = JWTManager()
 migrate = Migrate()
 bcrypt = Bcrypt()
+limiter = Limiter(key_func=get_remote_address)
 
 def configure_extensions(app):
     """Initializes all Flask extensions."""
@@ -21,16 +24,19 @@ def configure_extensions(app):
     jwt.init_app(app)
     migrate.init_app(app, db)
     bcrypt.init_app(app)
+    limiter.init_app(app)
+
     csp = {
-        'default-src': '\'self\'',
+        'default-src': "'self'",
         'img-src': ['*', 'data:'],
-        'script-src': ['\'self\'', '\'unsafe-inline\'', 'https://sdk.mercadopago.com'],
-        'style-src': ['\'self\'', '\'unsafe-inline\'', 'https://fonts.googleapis.com'],
-        'font-src': ['\'self\'', 'https://fonts.gstatic.com'],
-        'connect-src': ['\'self\'', 'https://api.roblox.com', 'https://catalog.roblox.com', 'https://thumbnails.roblox.com', 'https://api.mercadopago.com']
+        'script-src': ["'self'", "'unsafe-inline'", 'https://sdk.mercadopago.com'],
+        'style-src': ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
+        'font-src': ["'self'", 'https://fonts.gstatic.com'],
+        'connect-src': ["'self'", 'https://api.roblox.com', 'https://catalog.roblox.com', 'https://thumbnails.roblox.com', 'https://api.mercadopago.com']
     }
-    Talisman(app, content_security_policy=csp, force_https=False)
-    CORS(app, supports_credentials=True)
+
+    Talisman(app, content_security_policy=csp, force_https=os.environ.get('FLASK_ENV') == 'production')
+    CORS(app, supports_credentials=True, origins=app.config.get('CORS_ORIGINS', []))
 
 def register_blueprints(app):
     """Registers all application blueprints."""

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { ShieldCheck, Wallet, TrendingUp } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import axios from 'axios';
+import { api } from '../lib/api';
 import AdminStats from './admin/AdminStats';
 import WithdrawalTable from './admin/WithdrawalTable';
 
@@ -31,8 +31,8 @@ export default function AdminPanel() {
   const fetchData = async () => {
     try {
       const [overRes, withRes] = await Promise.all([
-        axios.get('/api/admin/overview'),
-        axios.get('/api/admin/withdrawals/pending'),
+        api.get('/api/admin/overview'),
+        api.get('/api/admin/withdrawals/pending'),
       ]);
       setOverview(overRes.data);
       setWithdrawals(withRes.data);
@@ -49,7 +49,7 @@ export default function AdminPanel() {
     if (action === 'reject' && !confirm('Rejeitar este saque?')) return;
     setProcessingId(id);
     try {
-      await axios.post(`/api/admin/withdrawals/${id}/${action}`);
+      await api.post(`/api/admin/withdrawals/${id}/${action}`);
       await fetchData();
     } catch (_err) {
       alert(`Erro ao ${action === 'approve' ? 'aprovar' : 'rejeitar'} saque`);
