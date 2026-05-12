@@ -8,6 +8,7 @@ from flask_cors import CORS
 from flask_bcrypt import Bcrypt
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
+from sqlalchemy.exc import OperationalError, SQLAlchemyError
 from .utils.logger import setup_logger
 
 setup_logger()
@@ -58,7 +59,14 @@ def init_db_schema(app):
         from .models.user import User
         from .models.sale import Sale
 
-        db.create_all()
+        try:
+            db.create_all()
+        except OperationalError as e:
+            app.logger.error("Database connection unavailable during startup: %s", e)
+            return
+        except SQLAlchemyError as e:
+            app.logger.error("Database initialization failed during startup: %s", e)
+            return
 
         # SQLite schema sync helper
         try:
@@ -93,7 +101,10 @@ def create_app():
 
     configure_extensions(app)
     register_blueprints(app)
-    init_db_schema(app)
+    try:
+        init_db_schema(app)
+    except Exception as e:
+        app.logger.error("Initialization skipped due to database startup error: %s", e)
 
     @app.route('/', defaults={'path': ''})
     @app.route('/<path:path>')
