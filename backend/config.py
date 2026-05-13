@@ -29,8 +29,11 @@ class Config:
     # Store Configuration
     COMMISSION_RATE = float(os.environ.get('COMMISSION_RATE', 0.10))
 
-    # Rate Limiting
-    RATELIMIT_STORAGE_URI = os.environ.get('REDIS_URL', 'memory://')
+    # Rate Limiting - Use in-memory storage for development, Redis for production
+    if os.environ.get('FLASK_ENV') == 'production':
+        RATELIMIT_STORAGE_URI = os.environ.get('REDIS_URL', 'redis://localhost:6379/0')
+    else:
+        RATELIMIT_STORAGE_URI = 'memory://'
     RATELIMIT_DEFAULT = os.environ.get('RATELIMIT_DEFAULT', '200 per day;50 per hour')
     RATELIMIT_HEADERS_ENABLED = True
 
