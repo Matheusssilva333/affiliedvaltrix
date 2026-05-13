@@ -16,8 +16,8 @@ class Config:
     JWT_ACCESS_TOKEN_EXPIRES = timedelta(minutes=int(os.environ.get('JWT_ACCESS_TOKEN_EXPIRES', 15)))
     JWT_REFRESH_TOKEN_EXPIRES = timedelta(days=int(os.environ.get('JWT_REFRESH_TOKEN_EXPIRES', 7)))
     JWT_TOKEN_LOCATION = ['cookies']
-    JWT_COOKIE_SECURE = os.environ.get('FLASK_ENV', 'development') == 'production' and os.environ.get('JWT_COOKIE_SECURE', 'False').lower() in ['true', '1', 'yes']
-    JWT_COOKIE_SAMESITE = 'Strict'
+    JWT_COOKIE_SECURE = os.environ.get('JWT_COOKIE_SECURE', 'False').lower() in ['true', '1', 'yes']
+    JWT_COOKIE_SAMESITE = os.environ.get('JWT_COOKIE_SAMESITE', 'None')
     JWT_COOKIE_CSRF_PROTECT = True
     JWT_SESSION_COOKIE = False
     JWT_ACCESS_CSRF_COOKIE_NAME = 'csrf_access_token_cookie'
